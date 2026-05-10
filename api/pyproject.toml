@@ -39,6 +39,9 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 asyncio_mode = "auto"
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+    "integration: tests that call external services",
+]
 
 [tool.uv]
 package = false

@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
 
     STT_PROVIDER: Literal["mock", "openai"] = "mock"
+    STT_MODEL: str = "gpt-4o-mini-transcribe"
     TTS_PROVIDER: Literal["mock", "openai"] = "mock"
     TTS_MODEL: str = "tts-1"
     TTS_VOICE: str = "alloy"
