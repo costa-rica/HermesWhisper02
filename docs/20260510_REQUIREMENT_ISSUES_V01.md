@@ -60,6 +60,8 @@ This is a blocker because:
 
 Can we start off with a using an external model? Ideally we would use the OpenAI pro subscription that Hermes connects to. But if not let's use an api. We will not run Ollama on Ubuntu. Does this pose a problem?
 
+The Hermes AI agent uses the OpenAI pro subscription credentials it does not use the OpenAI api.
+
 ### A-4. Greenfield confirmation — start fresh, don't fork HermesVoice in place
 
 Both `api/` and `mobile/` are currently empty. The requirements describe a new project that **migrates** code from HermesVoice (REQ §7). Confirm:
@@ -94,7 +96,7 @@ This is "soon-ish" but it shapes the front-LLM processor's interface. Recommenda
 
 #### Nick Answer
 
-## What is this ? Let's go with your recommendation.
+Start with the simple serial approach (§6.3a) for v1. Build the pipeline serial end-to-end first so we can prove every other piece (STT, front LLM, TTS, Hermes tool, persistence, barge-in) works against a known shape. Once the serial pipeline meets functional acceptance, refactor to `ParallelPipeline` (§6.3b) as its own dedicated phase, with measured ack-TTFB before/after to justify the added complexity. If the parallel refactor regresses correctness or stability, the revert path is to keep the serial pipeline in v1 and defer parallel to v1.1.
 
 ## B. Soon (needed before the affected phase)
 
@@ -111,7 +113,7 @@ Both add API keys; confirm the project owns accounts for them.
 
 #### Nick Answer
 
-Please add the .env variables necesary. There is an openai api key .env variable that was previously used for SST and TTS. If this won't work please craete a new file with the YYYYMMDD\_ prefix and name it something accordingly like "SST_TTS_PROVIDERS_INSTRUCTIONS" with the instrucitons for getting the appropriate credentials.
+Let's start with the OpenAI Whisper + OpenAI TTS. Then if we think OpenAI is not good enough try Deepgram (STT) + Cartesia (TTS).
 
 ### B-2. Auth scheme on the new server
 
@@ -120,6 +122,21 @@ REQ §6 says v1 keeps the HermesVoice 2FA email-code → bearer token flow. For 
 - The same SMTP / email-sender configuration is available on the new box.
 - The user table / SQLite store from HermesVoice is being migrated, or whether the new server starts with a fresh user list (in which case we need the seed user(s) for `nrodrig1@gmail.com`).
 - Whether bearer tokens get an expiry + refresh story now (REQ §9.8) or stay long-lived for v1. **Recommendation:** long-lived for v1; revisit.
+
+#### Nick Answer
+
+The .env file has
+
+```env
+# Email (Gmail SMTP)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=nrodrig1@gmail.com
+EMAIL_PASSWORD=
+EMAIL_FROM=HermesWhisper <nrodrig1@gmail.com>
+```
+
+This sould be enough for the api to use a package that will email the user the 2FA.
 
 ### B-3. iOS minimum version, Xcode version, signing identity (REQ §9.9)
 
