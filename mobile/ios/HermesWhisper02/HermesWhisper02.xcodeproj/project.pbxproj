@@ -1,0 +1,630 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		05DB174BB1523620A10A578D /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54EA15C53822763A9D3A635F /* AuthService.swift */; };
+		098D501DC752960708DDC9E9 /* ServerProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B669DFC2D6B14B7A353AFD7 /* ServerProfile.swift */; };
+		0B2CD180C801192BF15E4706 /* VoiceSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = E101AC29B3A0A7D2CD852C6F /* VoiceSocket.swift */; };
+		11AC4374D7DE91DD87693CA7 /* BargeInDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F3F5F56721B1289B49A806 /* BargeInDetector.swift */; };
+		1E789ADE30C2867D68B564DD /* HermesWhisper02App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA78936E88717E1D0C0A5A9 /* HermesWhisper02App.swift */; };
+		2424ECB7134FEFE4EFDCDB43 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539E712CF055D8C17357B2E6 /* KeychainStore.swift */; };
+		2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC846F6BECE04324F6BB84BC /* SanityTests.swift */; };
+		3C6C991800927A7E31960A3A /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E051598A268D980BE03316D8 /* AudioPlayer.swift */; };
+		4305B7620109D5A8C611F671 /* VoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E3F69F021639A82B399EC4 /* VoiceView.swift */; };
+		5497E658CD3F0B1603ED29CC /* ProtocolVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 194B82E416B71208C98A3F59 /* ProtocolVersion.swift */; };
+		5683D8434D5C843311C06277 /* PlaybackActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */; };
+		5A37610F429EFA3B6DA0A246 /* AssistantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */; };
+		6A514B2F8012197CE8EE451D /* ServerProfileEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC1C64D916F91B56A3969B8 /* ServerProfileEditView.swift */; };
+		6ADEF5F20F33846194187FE4 /* ErrorEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA62808A5A2F301000D69B55 /* ErrorEnvelope.swift */; };
+		796F98BD66C3F99EF1293DFE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F426E2172720DD8D9D2C32E /* Logger.swift */; };
+		7E61B54E3CD337759FA09EF5 /* ProtocolEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */; };
+		80AB87E77B9BC3AF308C4144 /* HermesWhisper02UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2566CEE1730110198F5643E8 /* HermesWhisper02UITests.swift */; };
+		8CC5741727A44337D4862F71 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE8C17852AD10DB8787D2029 /* AppEnvironment.swift */; };
+		B319005DB46CB24FF1F9E6BE /* ServerRegistryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35AC43133650C131A10D849 /* ServerRegistryStore.swift */; };
+		C66DA6DEEC964B05D23908ED /* ServerInfoProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5FB96F2D4D43BDAFAAD997 /* ServerInfoProbe.swift */; };
+		C6A8DADA80E63BD384C2927E /* TurnId.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */; };
+		CB53FEB55DF7D230D183BD77 /* VerifyCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3ABA93821FD4572861EF6 /* VerifyCodeView.swift */; };
+		D0102423B424DDC707DC5A17 /* ServerRegistryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */; };
+		D4C07A8BF3A90F1280ACED29 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AA9BA27F6B39A4A2D54AEA /* AudioCapture.swift */; };
+		EB22E52A6DB78A2A9BC921EA /* VoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29E39A6F985798169851C0C /* VoiceController.swift */; };
+		EDEC09D2D771D86DFDF94FD8 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27C828EDF163E8B174A27745 /* LoginView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6D4825B21E22B63B93B8BD73 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 823CDE29ECE65FC2E0DD84FF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9202FB2BB39553F584D03281;
+			remoteInfo = HermesWhisper02;
+		};
+		6F035BEC1473694BCD5925B5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 823CDE29ECE65FC2E0DD84FF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9202FB2BB39553F584D03281;
+			remoteInfo = HermesWhisper02;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0FA78936E88717E1D0C0A5A9 /* HermesWhisper02App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesWhisper02App.swift; sourceTree = "<group>"; };
+		1555FDE85A09391BAF88F1EF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		18F3F5F56721B1289B49A806 /* BargeInDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BargeInDetector.swift; sourceTree = "<group>"; };
+		194B82E416B71208C98A3F59 /* ProtocolVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolVersion.swift; sourceTree = "<group>"; };
+		2566CEE1730110198F5643E8 /* HermesWhisper02UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesWhisper02UITests.swift; sourceTree = "<group>"; };
+		27C828EDF163E8B174A27745 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		38AA9BA27F6B39A4A2D54AEA /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
+		3F426E2172720DD8D9D2C32E /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		4F5FB96F2D4D43BDAFAAD997 /* ServerInfoProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerInfoProbe.swift; sourceTree = "<group>"; };
+		539E712CF055D8C17357B2E6 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		54EA15C53822763A9D3A635F /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		5B669DFC2D6B14B7A353AFD7 /* ServerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProfile.swift; sourceTree = "<group>"; };
+		62E3F69F021639A82B399EC4 /* VoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceView.swift; sourceTree = "<group>"; };
+		637076EA76E11925D0E009F1 /* HermesWhisper02.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HermesWhisper02.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7FBB1A5129F97B4C712B7080 /* HermesWhisper02UITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HermesWhisper02UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryView.swift; sourceTree = "<group>"; };
+		87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolEnvelope.swift; sourceTree = "<group>"; };
+		99F3ABA93821FD4572861EF6 /* VerifyCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyCodeView.swift; sourceTree = "<group>"; };
+		B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantState.swift; sourceTree = "<group>"; };
+		BA62808A5A2F301000D69B55 /* ErrorEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorEnvelope.swift; sourceTree = "<group>"; };
+		BAC1C64D916F91B56A3969B8 /* ServerProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProfileEditView.swift; sourceTree = "<group>"; };
+		BE8C17852AD10DB8787D2029 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		C5D91FB568B339C0D220A48D /* HermesWhisper02Tests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HermesWhisper02Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D29E39A6F985798169851C0C /* VoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceController.swift; sourceTree = "<group>"; };
+		D35AC43133650C131A10D849 /* ServerRegistryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryStore.swift; sourceTree = "<group>"; };
+		E051598A268D980BE03316D8 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
+		E101AC29B3A0A7D2CD852C6F /* VoiceSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSocket.swift; sourceTree = "<group>"; };
+		E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnId.swift; sourceTree = "<group>"; };
+		EC846F6BECE04324F6BB84BC /* SanityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanityTests.swift; sourceTree = "<group>"; };
+		F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActor.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1E9E68956DE38035E7D0BA3E = {
+			isa = PBXGroup;
+			children = (
+				D27F437E05736C50BF09A5AD /* HermesWhisper02 */,
+				AB5FC726EE57DC95A71E2E4B /* HermesWhisper02Tests */,
+				ACDD175E7AADC3C07F0AC2F9 /* HermesWhisper02UITests */,
+				2C7EF67FF75BA523DC7B843D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2B6D90ACE39897F66DEAA945 /* Voice */ = {
+			isa = PBXGroup;
+			children = (
+				38AA9BA27F6B39A4A2D54AEA /* AudioCapture.swift */,
+				E051598A268D980BE03316D8 /* AudioPlayer.swift */,
+				18F3F5F56721B1289B49A806 /* BargeInDetector.swift */,
+				F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */,
+				87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */,
+				D29E39A6F985798169851C0C /* VoiceController.swift */,
+				E101AC29B3A0A7D2CD852C6F /* VoiceSocket.swift */,
+				62E3F69F021639A82B399EC4 /* VoiceView.swift */,
+			);
+			path = Voice;
+			sourceTree = "<group>";
+		};
+		2C7EF67FF75BA523DC7B843D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				637076EA76E11925D0E009F1 /* HermesWhisper02.app */,
+				C5D91FB568B339C0D220A48D /* HermesWhisper02Tests.xctest */,
+				7FBB1A5129F97B4C712B7080 /* HermesWhisper02UITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4F3D68F4269FD767C2FFF8F4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */,
+				194B82E416B71208C98A3F59 /* ProtocolVersion.swift */,
+				E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		54E32178AF66B601D4D68495 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				BE8C17852AD10DB8787D2029 /* AppEnvironment.swift */,
+				0FA78936E88717E1D0C0A5A9 /* HermesWhisper02App.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		5786B721429596BE28F37A2F /* ServerRegistry */ = {
+			isa = PBXGroup;
+			children = (
+				4F5FB96F2D4D43BDAFAAD997 /* ServerInfoProbe.swift */,
+				5B669DFC2D6B14B7A353AFD7 /* ServerProfile.swift */,
+				BAC1C64D916F91B56A3969B8 /* ServerProfileEditView.swift */,
+				D35AC43133650C131A10D849 /* ServerRegistryStore.swift */,
+				835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */,
+			);
+			path = ServerRegistry;
+			sourceTree = "<group>";
+		};
+		583E957E025CC51B949AF5F1 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				54EA15C53822763A9D3A635F /* AuthService.swift */,
+				539E712CF055D8C17357B2E6 /* KeychainStore.swift */,
+				27C828EDF163E8B174A27745 /* LoginView.swift */,
+				99F3ABA93821FD4572861EF6 /* VerifyCodeView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		AB5FC726EE57DC95A71E2E4B /* HermesWhisper02Tests */ = {
+			isa = PBXGroup;
+			children = (
+				EC846F6BECE04324F6BB84BC /* SanityTests.swift */,
+			);
+			path = HermesWhisper02Tests;
+			sourceTree = "<group>";
+		};
+		ACDD175E7AADC3C07F0AC2F9 /* HermesWhisper02UITests */ = {
+			isa = PBXGroup;
+			children = (
+				2566CEE1730110198F5643E8 /* HermesWhisper02UITests.swift */,
+			);
+			path = HermesWhisper02UITests;
+			sourceTree = "<group>";
+		};
+		C451176C17485546707CE4A5 /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				BA62808A5A2F301000D69B55 /* ErrorEnvelope.swift */,
+				3F426E2172720DD8D9D2C32E /* Logger.swift */,
+			);
+			path = Util;
+			sourceTree = "<group>";
+		};
+		D27F437E05736C50BF09A5AD /* HermesWhisper02 */ = {
+			isa = PBXGroup;
+			children = (
+				1555FDE85A09391BAF88F1EF /* Info.plist */,
+				54E32178AF66B601D4D68495 /* App */,
+				583E957E025CC51B949AF5F1 /* Auth */,
+				4F3D68F4269FD767C2FFF8F4 /* Models */,
+				5786B721429596BE28F37A2F /* ServerRegistry */,
+				C451176C17485546707CE4A5 /* Util */,
+				2B6D90ACE39897F66DEAA945 /* Voice */,
+			);
+			path = HermesWhisper02;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		67F15E2EF8ED8493475CB386 /* HermesWhisper02UITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E6CBF2A858237F9B55B43F59 /* Build configuration list for PBXNativeTarget "HermesWhisper02UITests" */;
+			buildPhases = (
+				696C3C0A3CA72AAD7DB50216 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AF8A122DA0EF1B63DF1F5E68 /* PBXTargetDependency */,
+			);
+			name = HermesWhisper02UITests;
+			packageProductDependencies = (
+			);
+			productName = HermesWhisper02UITests;
+			productReference = 7FBB1A5129F97B4C712B7080 /* HermesWhisper02UITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		9202FB2BB39553F584D03281 /* HermesWhisper02 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7991473A86EC95A25EE8F8E6 /* Build configuration list for PBXNativeTarget "HermesWhisper02" */;
+			buildPhases = (
+				A7E4C464341326BA02418FF4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HermesWhisper02;
+			packageProductDependencies = (
+			);
+			productName = HermesWhisper02;
+			productReference = 637076EA76E11925D0E009F1 /* HermesWhisper02.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CF25BDC03E11122E600FB828 /* HermesWhisper02Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7EA68C363692BEEEC74FD079 /* Build configuration list for PBXNativeTarget "HermesWhisper02Tests" */;
+			buildPhases = (
+				20BB6E467B35E6AE9D44C62B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BA9F89A9A80E17CDB4517C9B /* PBXTargetDependency */,
+			);
+			name = HermesWhisper02Tests;
+			packageProductDependencies = (
+			);
+			productName = HermesWhisper02Tests;
+			productReference = C5D91FB568B339C0D220A48D /* HermesWhisper02Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		823CDE29ECE65FC2E0DD84FF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					67F15E2EF8ED8493475CB386 = {
+						DevelopmentTeam = "";
+						TestTargetID = 9202FB2BB39553F584D03281;
+					};
+					9202FB2BB39553F584D03281 = {
+						DevelopmentTeam = "";
+					};
+					CF25BDC03E11122E600FB828 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = C30B78A009B47A5AD226D72A /* Build configuration list for PBXProject "HermesWhisper02" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 1E9E68956DE38035E7D0BA3E;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 2C7EF67FF75BA523DC7B843D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9202FB2BB39553F584D03281 /* HermesWhisper02 */,
+				CF25BDC03E11122E600FB828 /* HermesWhisper02Tests */,
+				67F15E2EF8ED8493475CB386 /* HermesWhisper02UITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		20BB6E467B35E6AE9D44C62B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		696C3C0A3CA72AAD7DB50216 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				80AB87E77B9BC3AF308C4144 /* HermesWhisper02UITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A7E4C464341326BA02418FF4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8CC5741727A44337D4862F71 /* AppEnvironment.swift in Sources */,
+				5A37610F429EFA3B6DA0A246 /* AssistantState.swift in Sources */,
+				D4C07A8BF3A90F1280ACED29 /* AudioCapture.swift in Sources */,
+				3C6C991800927A7E31960A3A /* AudioPlayer.swift in Sources */,
+				05DB174BB1523620A10A578D /* AuthService.swift in Sources */,
+				11AC4374D7DE91DD87693CA7 /* BargeInDetector.swift in Sources */,
+				6ADEF5F20F33846194187FE4 /* ErrorEnvelope.swift in Sources */,
+				1E789ADE30C2867D68B564DD /* HermesWhisper02App.swift in Sources */,
+				2424ECB7134FEFE4EFDCDB43 /* KeychainStore.swift in Sources */,
+				796F98BD66C3F99EF1293DFE /* Logger.swift in Sources */,
+				EDEC09D2D771D86DFDF94FD8 /* LoginView.swift in Sources */,
+				5683D8434D5C843311C06277 /* PlaybackActor.swift in Sources */,
+				7E61B54E3CD337759FA09EF5 /* ProtocolEnvelope.swift in Sources */,
+				5497E658CD3F0B1603ED29CC /* ProtocolVersion.swift in Sources */,
+				C66DA6DEEC964B05D23908ED /* ServerInfoProbe.swift in Sources */,
+				098D501DC752960708DDC9E9 /* ServerProfile.swift in Sources */,
+				6A514B2F8012197CE8EE451D /* ServerProfileEditView.swift in Sources */,
+				B319005DB46CB24FF1F9E6BE /* ServerRegistryStore.swift in Sources */,
+				D0102423B424DDC707DC5A17 /* ServerRegistryView.swift in Sources */,
+				C6A8DADA80E63BD384C2927E /* TurnId.swift in Sources */,
+				CB53FEB55DF7D230D183BD77 /* VerifyCodeView.swift in Sources */,
+				EB22E52A6DB78A2A9BC921EA /* VoiceController.swift in Sources */,
+				0B2CD180C801192BF15E4706 /* VoiceSocket.swift in Sources */,
+				4305B7620109D5A8C611F671 /* VoiceView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AF8A122DA0EF1B63DF1F5E68 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9202FB2BB39553F584D03281 /* HermesWhisper02 */;
+			targetProxy = 6F035BEC1473694BCD5925B5 /* PBXContainerItemProxy */;
+		};
+		BA9F89A9A80E17CDB4517C9B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9202FB2BB39553F584D03281 /* HermesWhisper02 */;
+			targetProxy = 6D4825B21E22B63B93B8BD73 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1ACC1BD6E0B7022BAA31078B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = HermesWhisper02/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dashanddata.hermeswhisper02;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3FB05780C5675246EE0A09EB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		43D438606F828CD36FF29B03 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dashanddata.hermeswhisper02.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HermesWhisper02;
+			};
+			name = Release;
+		};
+		9E4EF4C424F6DD8C26D5304F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B34602B07DD6525AF6AD98B5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dashanddata.hermeswhisper02.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HermesWhisper02.app/HermesWhisper02";
+			};
+			name = Debug;
+		};
+		D1D67C761B0A88C82C63C955 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dashanddata.hermeswhisper02.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HermesWhisper02.app/HermesWhisper02";
+			};
+			name = Release;
+		};
+		D21A46BA82E571B57475708D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = HermesWhisper02/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dashanddata.hermeswhisper02;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		EFCCBBE1BAB99BFF100C8B44 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dashanddata.hermeswhisper02.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HermesWhisper02;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7991473A86EC95A25EE8F8E6 /* Build configuration list for PBXNativeTarget "HermesWhisper02" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1ACC1BD6E0B7022BAA31078B /* Debug */,
+				D21A46BA82E571B57475708D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7EA68C363692BEEEC74FD079 /* Build configuration list for PBXNativeTarget "HermesWhisper02Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B34602B07DD6525AF6AD98B5 /* Debug */,
+				D1D67C761B0A88C82C63C955 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C30B78A009B47A5AD226D72A /* Build configuration list for PBXProject "HermesWhisper02" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FB05780C5675246EE0A09EB /* Debug */,
+				9E4EF4C424F6DD8C26D5304F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E6CBF2A858237F9B55B43F59 /* Build configuration list for PBXNativeTarget "HermesWhisper02UITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EFCCBBE1BAB99BFF100C8B44 /* Debug */,
+				43D438606F828CD36FF29B03 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 823CDE29ECE65FC2E0DD84FF /* Project object */;
+}
