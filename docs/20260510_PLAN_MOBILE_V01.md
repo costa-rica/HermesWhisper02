@@ -18,10 +18,11 @@ This plan follows `docs/TODO_LIST_GUIDANCE.md` (per-phase: build, run XCTests, c
 | Bundle id              | `com.dashanddata.hermeswhisper02` (confirm with Apple Developer team)           |
 | Distribution           | Local-install via Xcode in v1; TestFlight deferred                              |
 | Concurrency            | `async/await` and `AsyncStream`; no Combine unless trivially convenient         |
-| Server registry store  | JSON file in `Application Support` + per-profile Keychain entry                 |
+| Server registry store  | JSON file in `Application Support`; Keychain account = `profile.id.uuidString`  |
 | Audio uplink           | Raw PCM16 LE, 16 kHz mono, 20 ms frames (320 samples)                           |
 | Audio downlink         | PCM16 LE, sample rate per `audio_chunk` prelude                                 |
-| VAD                    | **None on device.** Server-side VAD only.                                       |
+| VAD                    | No on-device speech recognition VAD. A **small interrupt-only energy detector** (`BargeInDetector`) gates playback flush during assistant speech to meet NFR-3; it does not define utterance boundaries — server VAD does. |
+| Background             | Voice sessions are **foreground-only** in v1 (Codex Mobile §5).                |
 | Initial server         | One pre-populated profile pointing to `https://api.hermes-whisper.dashanddata.com` |
 | Tests                  | XCTest unit tests for `ServerRegistry`, Keychain, JSON envelope; no UI tests v1 |
 
@@ -37,8 +38,8 @@ mobile/ios/HermesWhisper02/
       HermesWhisper02App.swift
       AppEnvironment.swift             # @Observable holding active profile, auth, ws state
     ServerRegistry/
-      ServerProfile.swift              # struct ServerProfile (Codable)
-      ServerRegistryStore.swift        # JSON file in App Support + Keychain refs
+      ServerProfile.swift              # struct ServerProfile (Codable); id is the Keychain account
+      ServerRegistryStore.swift        # JSON file in App Support
       ServerRegistryView.swift         # SwiftUI list + add/edit/delete/reorder
       ServerProfileEditView.swift      # add/edit one profile
       ServerInfoProbe.swift            # GET /api/server/info
@@ -48,10 +49,12 @@ mobile/ios/HermesWhisper02/
       LoginView.swift                  # email + password
       VerifyCodeView.swift             # 2FA 6-digit entry
     Voice/
-      VoiceSocket.swift                # URLSessionWebSocketTask wrapper
+      VoiceSocket.swift                # URLSessionWebSocketTask wrapper + heartbeat + seq validation
       ProtocolEnvelope.swift           # Codable for all v1 frames
       AudioCapture.swift               # AVAudioEngine input → PCM16 16kHz frames
-      AudioPlayer.swift                # AVAudioEngine output, queued PCM16 chunks
+      BargeInDetector.swift            # interrupt-only energy detector; flushes player only
+      AudioPlayer.swift                # public surface; all mutations dispatch to PlaybackActor
+      PlaybackActor.swift              # actor owning AVAudioPlayerNode state (enqueue/flush/route)
       VoiceController.swift            # @Observable orchestrator: capture ↔ socket ↔ player
       VoiceView.swift                  # main voice UI (talk button, transcript, state)
     Models/
@@ -103,7 +106,7 @@ Commit: `chore: scaffold ios project (PLAN_MOBILE phase 0)`.
 
 Tasks:
 
-- [ ] `ServerProfile.swift`: `id: UUID, displayName: String, baseURL: URL, notes: String?, authKind: AuthKind, keychainRef: String`. `AuthKind` is enum with `.bearer2FA` only in v1 (open enum-shaped for extension).
+- [ ] `ServerProfile.swift`: `id: UUID, displayName: String, baseURL: URL, notes: String?, authKind: AuthKind`. `AuthKind` is enum with `.bearer2FA` only in v1 (open enum-shaped for extension). Per Codex Mobile §6, **the Keychain account is `id.uuidString` directly** — no separate `keychainRef` field.
 - [ ] `ServerRegistryStore.swift`:
   - File path: `FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appending(path: "HermesWhisper02/server_registry.json")`.
   - API: `load() -> [ServerProfile]`, `save(_:)`, `add(_:)`, `update(_:)`, `delete(id:)`, `reorder(_:)`.
@@ -125,9 +128,9 @@ Commit: `feat: add server registry storage (PLAN_MOBILE phase 1)`.
 
 Tasks:
 
-- [ ] `KeychainStore.swift`: wraps `SecItemAdd/Copy/Update/Delete` for `kSecClassGenericPassword`, service `com.dashanddata.hw02.credentials`, account = `keychainRef`. Use `kSecAttrAccessibleAfterFirstUnlock` per NFR-6.
+- [ ] `KeychainStore.swift`: wraps `SecItemAdd/Copy/Update/Delete` for `kSecClassGenericPassword`, service `com.dashanddata.hw02.credentials`, **account = `profile.id.uuidString`**. Use `kSecAttrAccessibleAfterFirstUnlock` per NFR-6.
 - [ ] Stored value: JSON `{ "token": "...", "expiresAt": ISO8601, "email": "..." }`.
-- [ ] API: `save(_ ref: String, credentials: Credentials)`, `load(_ ref: String) -> Credentials?`, `delete(_ ref: String)`.
+- [ ] API: `save(profileID: UUID, credentials: Credentials)`, `load(profileID: UUID) -> Credentials?`, `delete(profileID: UUID)`. Also expose a strict `loadValid(profileID:) -> Credentials?` that returns nil for expired credentials (Codex Mobile §9).
 - [ ] Tests: in-memory shim for unit tests; a separate UI-test target later for a real-Keychain check (deferred).
 
 Acceptance:
@@ -208,6 +211,27 @@ Commit: `feat: add audio capture pipeline (PLAN_MOBILE phase 5)`.
 
 ---
 
+## Phase 5.5 — Physical-device audio bring-up
+
+**Goal:** Validate capture and a known downlink chunk on a real iPhone before any pipeline integration. Codex Mobile §4 flags simulator-only success as a real risk for AVFoundation work.
+
+Tasks:
+
+- [ ] Build & run on a physical iPhone (iOS 17+).
+- [ ] Verify mic capture: 16 kHz mono PCM16, 640-byte frames, RMS responds to speaking.
+- [ ] Verify playback of a bundled fixture PCM16 chunk through `PlaybackActor` (introduced in Phase 7) or a temporary direct path.
+- [ ] Verify route changes: unplug headphones mid-playback, accept a phone-call interruption (`AVAudioSession.interruptionNotification`), reconnect Bluetooth — the audio session recovers and the UI lands in an explicit recoverable state.
+- [ ] Capture screenshots / a short device log into `mobile/docs/device_bringup_5_5.md` for the record.
+
+Acceptance:
+
+- Capture and playback both work on the physical device.
+- Route changes and interruptions do not require a force-quit.
+
+Commit: `chore: physical device audio bring-up notes (PLAN_MOBILE phase 5.5)`.
+
+---
+
 ## Phase 6 — WebSocket client + protocol envelope
 
 **Goal:** Connect to `/ws/voice`, exchange `client_hello`/`session_started`, and stream uplink audio.
@@ -216,12 +240,13 @@ Tasks:
 
 - [ ] `ProtocolEnvelope.swift`: Codable types for every frame in `20260510_PROTOCOL_V01.md` §4. Discriminated union via `type` field. Encode/decode with `JSONDecoder` + a small dispatch helper.
 - [ ] `VoiceSocket.swift`:
-  - `URLSession.shared.webSocketTask(with: request)` with `Authorization: Bearer ...` header.
+  - `URLSession.shared.webSocketTask(with: request)` with `Authorization: Bearer ...` header. **Pre-flight:** refuse to open if `KeychainStore.loadValid(profileID:)` returns nil (expired token → return to login per Codex Mobile §9).
   - `connect()`, `sendJSON(_:)`, `sendBinary(_:)`, `close()`.
   - `events: AsyncStream<VoiceEvent>` where `VoiceEvent` is `.json(ServerFrame) | .binaryAudio(audioChunkPrelude, Data) | .closed(Error?)`.
   - **Audio prelude pairing:** when a JSON `audio_chunk` arrives, store it as "expected next binary"; when the next binary frame arrives, pair them and emit `.binaryAudio`. If the order ever inverts, log + close with a protocol error.
-- [ ] `VoiceController.swift`: orchestrate `AudioCapture.frames → VoiceSocket.sendBinary` and `VoiceSocket.events → AudioPlayer.enqueue` (AudioPlayer in next phase).
-- [ ] Tests: `ProtocolEnvelopeTests` round-trips every frame type; `VoiceSocket` test against a local URLProtocol-style stub or a tiny embedded `Network.framework` server.
+  - **Observability hooks** (Codex Mobile §3): app-level heartbeat (`{"type":"ping"}` every 15 s, expects `{"type":"pong"}` within 5 s), per-`turn_id`/`source` `seq` validation (out-of-order or duplicate → log + close), backpressure log when `sendBinary` queue depth exceeds a threshold, and packet-to-playout timing logs. These let us decide post-v1 whether to migrate to WebRTC with data, not guesswork.
+- [ ] `VoiceController.swift`: orchestrate `AudioCapture.frames → VoiceSocket.sendBinary` and `VoiceSocket.events → PlaybackActor.enqueue` (PlaybackActor in next phase).
+- [ ] **Tests use an embedded `Network.framework` WS server as the primary test path** (Codex Mobile §7 — not optional). Cover: prelude→binary pairing happy path; binary without prelude closes with protocol error; prelude byte count mismatch closes with protocol error; reconnect sends previous `session_id`; out-of-order / duplicate `seq` closes with protocol error; `ProtocolEnvelopeTests` round-trips every frame type.
 
 Acceptance:
 
@@ -231,19 +256,28 @@ Commit: `feat: add voice websocket client (PLAN_MOBILE phase 6)`.
 
 ---
 
-## Phase 7 — TTS playback + barge-in
+## Phase 7 — TTS playback + local barge-in detector
 
-**Goal:** Play downlink audio chunks as they arrive; cut off playback on `user_started_speaking`.
+**Goal:** Play downlink audio chunks; cut off playback the moment renewed user speech is detected locally (NFR-3 ≤ 150 ms), with the server `user_started_speaking` event as a backup path.
 
 Tasks:
 
-- [ ] `AudioPlayer.swift`:
-  - `AVAudioEngine` output with `AVAudioPlayerNode` scheduled buffers.
-  - `enqueue(format: AudioFormat, sampleRate: Int, pcm16: Data)`: convert PCM16 to `AVAudioPCMBuffer` and schedule on the player node. Use a small ring buffer to absorb network jitter (target 60 ms).
-  - `flushAndStop()`: invalidate scheduled buffers, stop the player node — used for barge-in.
-- [ ] In `VoiceController`, on `user_started_speaking` from the server, immediately call `audioPlayer.flushAndStop()`. Target ≤ 150 ms (NFR-3).
-- [ ] On `turn_end {canceled: true}` clear the per-turn state.
-- [ ] Manual barge-in test: speak over the assistant; verify playback stops audibly within ~150 ms.
+- [ ] `PlaybackActor.swift` (Codex Mobile §8): a Swift `actor` owning **all** mutations of `AVAudioEngine` / `AVAudioPlayerNode`. Methods: `enqueue(format:, sampleRate:, pcm16:)`, `flushAndStop()`, `handleRouteChange(...)`, `handleInterruption(...)`. No callers may touch the player node directly. Internally maintain a small ring buffer (target 60 ms) to absorb network jitter.
+- [ ] `AudioPlayer.swift`: thin public surface that forwards to `PlaybackActor`. Existing call sites use this; only `PlaybackActor` knows about `AVAudioPlayerNode`.
+- [ ] `BargeInDetector.swift`: interrupt-only energy detector per FR-2.4(a).
+  - Active **only** while `PlaybackActor` reports it is currently playing assistant audio.
+  - Computes RMS over a 50 ms window of incoming mic frames; if RMS exceeds a tuned threshold for ≥ 2 consecutive windows, fire `onLikelySpeech`.
+  - Does **not** define utterance boundaries, does **not** signal `end_of_utterance`, does **not** modify uplink. Mic frames continue to be sent to the server unchanged.
+  - Threshold and window tunables in code (`BargeInDetector.Config`); revisit on the device after Phase 5.5.
+- [ ] In `VoiceController`:
+  - On `BargeInDetector.onLikelySpeech` → immediately `await playbackActor.flushAndStop()`. **Target ≤ 150 ms** end-to-end (mic-frame-arrival → playback-silenced).
+  - On server `user_started_speaking` → also call `flushAndStop()` (idempotent backup path; covers cases where the local detector misses).
+  - On `turn_end {canceled: true}` → clear per-turn state.
+- [ ] Tests:
+  - Feed a known-loud Float32 buffer to `BargeInDetector` while it is "active"; assert it fires within 100 ms of synthetic onset.
+  - Feed the same buffer while it is "inactive" (no playback); assert it does NOT fire.
+  - Concurrency test: rapid `enqueue`/`flushAndStop` interleavings on `PlaybackActor` never schedule a buffer after a flush.
+- [ ] Manual on-device barge-in test (extends Phase 5.5 device): speak over the assistant; measure mic-RMS-onset → silence by listening + log timestamps.
 
 Acceptance:
 
@@ -309,7 +343,7 @@ Commit: `docs: agents.md and v0.1.0 polish (PLAN_MOBILE phase 10)`.
 
 ## Cross-cutting policies
 
-- **No client-side VAD.** Confirmed by FR-2.1.
+- **No client-side VAD for utterance boundaries.** Server VAD is authoritative. The `BargeInDetector` is an interrupt-only energy detector — it does not produce transcripts and does not signal `end_of_utterance`. See FR-2.1 / FR-2.4 clarification.
 - **No on-device STT/TTS.** Confirmed by FR-2.x.
 - **No Combine framework** unless trivially used by SwiftUI bindings. Stick to async/await.
 - **No third-party Swift packages** in v1 unless absolutely necessary. Apple frameworks only (Foundation, AVFoundation, Network, Security, SwiftUI). If a package is needed (e.g., for Keychain ergonomics), justify in PR.

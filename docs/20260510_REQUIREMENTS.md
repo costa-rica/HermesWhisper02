@@ -104,16 +104,19 @@ The front LLM is configurable per deployment; Hermes is always loopback.
 
 ### FR-2 Thin-client mobile audio transport
 
-- **FR-2.1** The Swift app must remove all on-device VAD code (`VoiceActivityDetector.swift` and `Vendor/sherpa-onnx*`).
+- **FR-2.1** The Swift app must remove all on-device speech-recognition VAD (`VoiceActivityDetector.swift` and `Vendor/sherpa-onnx*`). Server-side VAD is the sole authority for utterance boundaries. **Clarification (2026-05-10):** a small client-side **interrupt-only energy detector** is permitted and required by NFR-3 — see FR-2.4. It must not emit transcripts, must not signal `end_of_utterance`, must not gate uplink, and must operate only while assistant audio is playing. It exists solely to cut local playback fast enough to meet NFR-3.
 - **FR-2.2** The app must capture mic audio at a Pipecat-compatible format (target: 16 kHz mono PCM16, frame size per Pipecat transport spec) and stream it continuously over WebSocket while the session is active.
 - **FR-2.3** The app must play TTS audio frames received from the server with sub-200 ms first-chunk latency after server emits.
-- **FR-2.4** The app must support **barge-in**: when the server sends a `user_started_speaking` signal, the app immediately stops local TTS playback and flushes its playback queue.
+- **FR-2.4** The app must support **barge-in** through two independent paths, whichever fires first:
+  - **(a)** A local interrupt-only energy detector (per FR-2.1 clarification) stops playback the moment renewed user speech is detected. Required to meet NFR-3.
+  - **(b)** When the server emits `user_started_speaking`, the app stops playback and flushes the queue (covers cases where (a) misses).
+  Neither path defines turn boundaries; the server's VAD remains authoritative for that.
 - **FR-2.5** Push-to-talk and continuous-listening modes must both be supported, configurable per session.
 
 ### FR-3 Front LLM intermediary
 
-- **FR-3.1** The front LLM processor must, upon receiving a finalized user transcript, **immediately** generate a short acknowledgment ("got it, checking on that…") and emit it through TTS before invoking Hermes.
-- **FR-3.2** The front LLM must invoke Hermes via a `call_hermes(query, conversation_id)` tool call, in parallel with (or immediately after) emitting the acknowledgment.
+- **FR-3.1** Acknowledgment generation is owned by a dedicated **deterministic ack processor**, not the front LLM. On receiving a finalized user transcript classified as non-trivial, the ack processor selects from a varied template list and emits the ack text to TTS immediately, in parallel with (and independent of) the front LLM. This decouples first-audio-byte latency (NFR-1) from LLM tool-call timing.
+- **FR-3.2** The front LLM, upon the same finalized transcript, decides whether to call `call_hermes(query, conversation_id)` (substantive) or to answer directly (small talk / trivial). The ack processor does not block on the LLM and the LLM does not block on the ack.
 - **FR-3.3** When Hermes returns, the front LLM must relay the response to the user via TTS, optionally summarizing or rephrasing.
 - **FR-3.4** The front LLM must handle small talk, clarifying questions, and trivial requests **without** calling Hermes.
 - **FR-3.5** The front LLM model must be configurable: `FRONT_LLM_PROVIDER=ollama|anthropic`, with `FRONT_LLM_MODEL` (e.g. `llama3.2:3b`, `claude-haiku-4-5-20251001`).
@@ -149,9 +152,9 @@ The front LLM is configurable per deployment; Hermes is always loopback.
 
 | ID    | Category        | Requirement                                                                                                                |
 | ----- | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| NFR-1 | Latency         | Time from end-of-user-speech (server VAD) to first TTS audio byte on the wire **≤ 800 ms p50, ≤ 1500 ms p95** (front LLM ack). |
+| NFR-1 | Latency         | Time from end-of-user-speech (server VAD) to first TTS audio byte on the wire **≤ 800 ms p50, ≤ 1500 ms p95** (deterministic ack path, per FR-3.1). |
 | NFR-2 | Latency         | Time from end-of-user-speech to first TTS audio byte of **Hermes** answer **≤ 3.5 s p50, ≤ 6 s p95**.                       |
-| NFR-3 | Barge-in        | From client mic detecting renewed speech to local playback silenced **≤ 150 ms**; server cancels in-flight TTS within **≤ 200 ms**. |
+| NFR-3 | Barge-in        | From client mic detecting renewed speech (via the FR-2.4(a) interrupt-only detector) to local playback silenced **≤ 150 ms**; server cancels in-flight TTS within **≤ 200 ms** of receiving renewed audio. |
 | NFR-4 | Audio quality   | Uplink ≥ 16 kHz mono PCM16; downlink ≥ 24 kHz; no audible glitches across chunk boundaries; AGC/echo cancellation acceptable. |
 | NFR-5 | Reliability     | WebSocket reconnect with session resume within 2 s on transient drop; turn state must be idempotent across reconnects.      |
 | NFR-6 | Security        | All transport TLS 1.2+; bearer tokens scoped per server; Keychain entries marked `kSecAttrAccessibleAfterFirstUnlock`.     |
