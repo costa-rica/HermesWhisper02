@@ -12,6 +12,7 @@ from app.pipecat_processors.ws_transport_adapter import (
     PassthroughEchoPipeline,
     ProjectWebSocketTransportAdapter,
 )
+from app.services.pipeline import build_pipeline
 from app.services.tokens import verify_token
 from app.services.voice_store import VoiceStore
 
@@ -51,6 +52,7 @@ async def voice_ws(websocket: WebSocket) -> None:
 
 async def _voice_loop(adapter: ProjectWebSocketTransportAdapter) -> None:
     pipeline = PassthroughEchoPipeline(adapter)
+    mock_pipeline = build_pipeline()
     while True:
         websocket = adapter.websocket
         message = await websocket.receive()
@@ -79,7 +81,30 @@ async def _voice_loop(adapter: ProjectWebSocketTransportAdapter) -> None:
         elif "bytes" in message:
             input_frame = await adapter.receive_input_frame(message)
             if input_frame is not None:
-                await pipeline.process_audio(input_frame)
+                pipeline.buffered_audio_bytes += len(input_frame.audio)
+                if pipeline.buffered_audio_bytes >= 16_000 * 2:
+                    turn = await mock_pipeline.process_audio(input_frame.audio)
+                    await adapter.websocket.send_json(
+                        {
+                            "type": "transcript",
+                            "turn_id": turn.turn_id,
+                            "text": turn.transcript,
+                            "is_final": True,
+                        }
+                    )
+                    for chunk in turn.chunks:
+                        await adapter.websocket.send_json(
+                            {"type": "assistant_state", "state": chunk.source}
+                        )
+                        await adapter.send_audio_chunk(
+                            turn_id=chunk.turn_id,
+                            source=chunk.source,  # type: ignore[arg-type]
+                            sample_rate=chunk.sample_rate,
+                            audio=chunk.audio,
+                        )
+                    await adapter.websocket.send_json({"type": "turn_end", "turn_id": turn.turn_id})
+                    await adapter.websocket.send_json({"type": "assistant_state", "state": "idle"})
+                    pipeline = PassthroughEchoPipeline(adapter)
 
 
 async def _authenticate(websocket: WebSocket) -> User:

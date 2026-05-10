@@ -43,16 +43,28 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
         started = websocket.receive_json()
         websocket.send_bytes(b"\x00\x00" * 16_000)
         transcript = websocket.receive_json()
+        ack_state = websocket.receive_json()
         prelude = websocket.receive_json()
         audio = websocket.receive_bytes()
+        answer_state = websocket.receive_json()
+        answer_prelude = websocket.receive_json()
+        answer_audio = websocket.receive_bytes()
         turn_end = websocket.receive_json()
+        idle_state = websocket.receive_json()
 
     assert started["type"] == "session_started"
     assert started["resumed"] is False
     assert transcript["type"] == "transcript"
+    assert ack_state == {"type": "assistant_state", "state": "ack"}
     assert prelude["type"] == "audio_chunk"
+    assert prelude["source"] == "ack"
     assert prelude["bytes"] == len(audio)
+    assert answer_state == {"type": "assistant_state", "state": "answer"}
+    assert answer_prelude["type"] == "audio_chunk"
+    assert answer_prelude["source"] == "answer"
+    assert answer_prelude["bytes"] == len(answer_audio)
     assert turn_end["type"] == "turn_end"
+    assert idle_state == {"type": "assistant_state", "state": "idle"}
 
 
 def test_voice_ws_rejects_unauthorized(tmp_path, monkeypatch) -> None:

@@ -55,6 +55,23 @@ class ProjectWebSocketTransportAdapter:
         )
         await self.websocket.send_bytes(frame.audio)
 
+    async def send_audio_chunk(
+        self,
+        *,
+        turn_id: str,
+        source: Literal["ack", "answer"],
+        sample_rate: int,
+        audio: bytes,
+    ) -> None:
+        await self.send_tts_audio(
+            TTSAudioRawFrame(
+                audio=audio,
+                sample_rate=sample_rate,
+                turn_id=turn_id,
+                source=source,
+            )
+        )
+
     async def send_user_started_speaking(self, ts: float) -> None:
         await self.websocket.send_json({"type": "user_started_speaking", "ts": ts})
 
