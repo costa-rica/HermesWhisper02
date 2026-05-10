@@ -9,7 +9,7 @@ from pydantic import ValidationError
 from app.config import Settings, get_settings
 from app.db import Database
 from app.errors import install_error_handlers
-from app.routes import health
+from app.routes import health, mobile_auth, server_info
 
 
 @asynccontextmanager
@@ -35,6 +35,8 @@ def create_app() -> FastAPI:
     )
     install_error_handlers(app)
     app.include_router(health.router)
+    app.include_router(server_info.router)
+    app.include_router(mobile_auth.router)
     return app
 
 
