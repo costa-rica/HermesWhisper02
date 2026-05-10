@@ -1,0 +1,69 @@
+# Local environment
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+ENV/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Logs and runtime files
+logs/
+*.log
+*.pid
+*.sock
+
+# Audio smoke-test artifacts
+*.wav
+*.aiff
+*.opus
+*.ogg
+*.oga
+*.mp3
+*.m4a
+*.flac
+
+# Web / JavaScript
+node_modules/
+web/dist/
+web/build/
+web/.vite/
+web/.next/
+web/coverage/
+
+# Native Apple generated output
+mobile/**/DerivedData/
+mobile/**/Pods/
+mobile/**/.build/
+mobile/**/*.xcworkspace/xcuserdata/
+mobile/**/*.xcodeproj/xcuserdata/
+
+# Native iOS runtime artifacts
+mobile/ios/HermesVoice/Vendor/sherpa-onnx/
+
+# Xcode user state
+*.xcuserstate
+xcuserdata/
+DerivedData/
+
+# Editors and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
