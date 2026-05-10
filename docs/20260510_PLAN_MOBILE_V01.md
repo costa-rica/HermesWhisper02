@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-10
 **Scope:** `mobile/ios/HermesWhisper02/` only (Swift iOS app).
-**Companion docs:** [`20260510_REQUIREMENTS.md`](20260510_REQUIREMENTS.md), [`20260510_PROTOCOL_V01.md`](20260510_PROTOCOL_V01.md), [`20260510_REQUIREMENT_ISSUES_V01.md`](20260510_REQUIREMENT_ISSUES_V01.md).
+**Companion docs:** [`20260510_REQUIREMENTS.md`](20260510_REQUIREMENTS.md), [`20260510_PROTOCOL_V01.md`](20260510_PROTOCOL_V01.md), [`archived/20260510_REQUIREMENT_ISSUES_V01.md`](archived/20260510_REQUIREMENT_ISSUES_V01.md) (decision history), [`archived/20260510_PLAN_MOBILE_V01_ASSESSMENT_CODEX.md`](archived/20260510_PLAN_MOBILE_V01_ASSESSMENT_CODEX.md) (review folded into this plan).
 
 This plan follows `docs/TODO_LIST_GUIDANCE.md` (per-phase: build, run XCTests, check off, commit referencing this file + phase).
 
