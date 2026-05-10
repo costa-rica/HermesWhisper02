@@ -6,6 +6,8 @@ readme = "README.md"
 authors = [{ name = "Dash and Data", email = "nrodrig1@gmail.com" }]
 requires-python = ">=3.12, <3.14"
 dependencies = [
+    "aiosqlite>=0.22.1",
+    "email-validator>=2.3.0",
     "fastapi>=0.136.1",
     "httpx>=0.28.1",
     "loguru>=0.7.3",

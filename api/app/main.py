@@ -7,6 +7,7 @@ from loguru import logger
 from pydantic import ValidationError
 
 from app.config import Settings, get_settings
+from app.db import Database
 from app.errors import install_error_handlers
 from app.routes import health
 
@@ -14,6 +15,7 @@ from app.routes import health
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
+    await Database(settings.DB_PATH).bootstrap()
     logger.info("{} starting", settings.NAME_APP)
     yield
     logger.info("{} stopping", settings.NAME_APP)
