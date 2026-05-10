@@ -1,6 +1,5 @@
 import json
 from typing import Any
-from uuid import uuid4
 
 from fastapi import APIRouter, WebSocket
 from starlette.websockets import WebSocketDisconnect
@@ -9,13 +8,16 @@ from app.config import get_settings
 from app.db import Database
 from app.errors import APIError, ErrorBody, ErrorEnvelope
 from app.models import User
+from app.pipecat_processors.ws_transport_adapter import (
+    PassthroughEchoPipeline,
+    ProjectWebSocketTransportAdapter,
+)
 from app.services.tokens import verify_token
 from app.services.voice_store import VoiceStore
 
 router = APIRouter(tags=["voice"])
 
 PROTOCOL_VERSION = 1
-UPLINK_BYTES_PER_SECOND = 16_000 * 2
 
 
 @router.websocket("/ws/voice")
@@ -39,7 +41,7 @@ async def voice_ws(websocket: WebSocket) -> None:
                 "resumed": resumed,
             }
         )
-        await _voice_loop(websocket)
+        await _voice_loop(ProjectWebSocketTransportAdapter(websocket))
     except APIError as exc:
         await websocket.send_json(_error_payload(exc))
         await websocket.close(code=1008)
@@ -47,11 +49,10 @@ async def voice_ws(websocket: WebSocket) -> None:
         return
 
 
-async def _voice_loop(websocket: WebSocket) -> None:
-    buffered_audio_bytes = 0
-    current_turn_id = str(uuid4())
-    sequence = 0
+async def _voice_loop(adapter: ProjectWebSocketTransportAdapter) -> None:
+    pipeline = PassthroughEchoPipeline(adapter)
     while True:
+        websocket = adapter.websocket
         message = await websocket.receive()
         if message["type"] == "websocket.disconnect":
             return
@@ -64,12 +65,11 @@ async def _voice_loop(websocket: WebSocket) -> None:
                 await websocket.send_json(
                     {
                         "type": "turn_end",
-                        "turn_id": frame.get("turn_id", current_turn_id),
+                        "turn_id": frame.get("turn_id", pipeline.turn_id),
                         "canceled": True,
                     }
                 )
-                current_turn_id = str(uuid4())
-                buffered_audio_bytes = 0
+                pipeline = PassthroughEchoPipeline(adapter)
             elif frame_type == "client_bye":
                 await websocket.close(code=1000)
                 return
@@ -77,33 +77,9 @@ async def _voice_loop(websocket: WebSocket) -> None:
                 await _send_protocol_error(websocket, f"Unsupported frame type: {frame_type}")
                 return
         elif "bytes" in message:
-            audio = message["bytes"]
-            buffered_audio_bytes += len(audio)
-            if buffered_audio_bytes >= UPLINK_BYTES_PER_SECOND:
-                await websocket.send_json(
-                    {
-                        "type": "transcript",
-                        "turn_id": current_turn_id,
-                        "text": "hello world",
-                        "is_final": True,
-                    }
-                )
-                await websocket.send_json(
-                    {
-                        "type": "audio_chunk",
-                        "turn_id": current_turn_id,
-                        "seq": sequence,
-                        "format": "pcm16",
-                        "sample_rate": 16_000,
-                        "bytes": len(audio),
-                        "source": "ack",
-                    }
-                )
-                await websocket.send_bytes(audio)
-                await websocket.send_json({"type": "turn_end", "turn_id": current_turn_id})
-                current_turn_id = str(uuid4())
-                sequence += 1
-                buffered_audio_bytes = 0
+            input_frame = await adapter.receive_input_frame(message)
+            if input_frame is not None:
+                await pipeline.process_audio(input_frame)
 
 
 async def _authenticate(websocket: WebSocket) -> User:
