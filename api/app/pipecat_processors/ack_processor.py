@@ -6,7 +6,10 @@ from pathlib import Path
 from pipecat.frames.frames import TextFrame, TranscriptionFrame
 
 ACK_PHRASES_PATH = Path(__file__).resolve().parents[1] / "services" / "ack_phrases.json"
-_TRIVIAL_RE = re.compile(r"^(hi|hey|hello|yo|yes|no|ok|okay|thanks|thank you)[.!?\\s]*$", re.I)
+_TRIVIAL_RE = re.compile(
+    r"^(hi|hi there|hey|hello|yo|yes|no|ok|okay|thanks|thank you)[.!?\\s]*$",
+    re.I,
+)
 
 
 class DeterministicAckProcessor:

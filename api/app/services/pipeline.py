@@ -5,7 +5,8 @@ from uuid import uuid4
 from loguru import logger
 
 from app.pipecat_processors.ack_processor import DeterministicAckProcessor
-from app.pipecat_processors.mocks import MockFrontLLM, MockSTT, MockTTS
+from app.pipecat_processors.mocks import MockSTT, MockTTS
+from app.services.front_llm import FrontAnswerProcessor
 
 
 @dataclass(frozen=True)
@@ -27,13 +28,24 @@ class MockVoicePipeline:
     def __init__(self) -> None:
         self.stt = MockSTT()
         self.ack = DeterministicAckProcessor()
-        self.front_llm = MockFrontLLM()
+        self.front_llm = FrontAnswerProcessor(conversation_id=str(uuid4()))
         self.tts = MockTTS()
 
     async def process_audio(self, audio: bytes) -> PipelineTurn:
-        turn_id = str(uuid4())
         vad_done = perf_counter()
         transcript_frame = self.stt.transcribe(audio)
+        return await self.process_transcript(transcript_frame, vad_done)
+
+    async def process_text(self, text: str) -> PipelineTurn:
+        transcript_frame = self.stt.transcribe(b"")
+        transcript_frame.text = text
+        return await self.process_transcript(transcript_frame, perf_counter())
+
+    async def process_transcript(
+        self, transcript_frame, vad_done: float | None = None
+    ) -> PipelineTurn:
+        turn_id = str(uuid4())
+        vad_done = vad_done or perf_counter()
         stt_done = perf_counter()
         logger.info("turn_id={} vad_to_stt_ms={:.2f}", turn_id, (stt_done - vad_done) * 1000)
 
@@ -51,7 +63,7 @@ class MockVoicePipeline:
             )
 
         llm_start = perf_counter()
-        answer_text = self.front_llm.answer(transcript_frame)
+        answer_text = await self.front_llm.answer(transcript_frame)
         llm_done = perf_counter()
         logger.info("turn_id={} stt_to_llm_ms={:.2f}", turn_id, (llm_done - stt_done) * 1000)
 
