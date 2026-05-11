@@ -107,11 +107,11 @@ Commit: `chore: scaffold ios project (PLAN_MOBILE phase 0)`.
 Tasks:
 
 - [x] `ServerProfile.swift`: `id: UUID, displayName: String, baseURL: URL, notes: String?, authKind: AuthKind`. `AuthKind` is enum with `.bearer2FA` only in v1 (open enum-shaped for extension). Per Codex Mobile §6, **the Keychain account is `id.uuidString` directly** — no separate `keychainRef` field.
-- [ ] `ServerRegistryStore.swift`:
+- [x] `ServerRegistryStore.swift`:
   - File path: `FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appending(path: "HermesWhisper02/server_registry.json")`.
   - API: `load() -> [ServerProfile]`, `save(_:)`, `add(_:)`, `update(_:)`, `delete(id:)`, `reorder(_:)`.
   - Pre-populate on first launch with one profile pointing at `https://api.hermes-whisper.dashanddata.com` named `fsdc-avatar08`.
-- [ ] Tests (`ServerRegistryStoreTests.swift`): write+read round-trip, pre-population on empty store, delete, reorder, update.
+- [x] Tests (`ServerRegistryStoreTests.swift`): write+read round-trip, pre-population on empty store, delete, reorder, update.
 
 Acceptance:
 
