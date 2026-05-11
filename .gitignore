@@ -29,6 +29,7 @@ logs/
 
 # Audio smoke-test artifacts
 *.wav
+!api/tests/fixtures/hello_world.wav
 *.aiff
 *.opus
 *.ogg
