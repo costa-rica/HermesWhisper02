@@ -67,7 +67,7 @@
 		54EA15C53822763A9D3A635F /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		5B669DFC2D6B14B7A353AFD7 /* ServerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProfile.swift; sourceTree = "<group>"; };
 		62E3F69F021639A82B399EC4 /* VoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceView.swift; sourceTree = "<group>"; };
-		637076EA76E11925D0E009F1 /* HermesWhisper02.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HermesWhisper02.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		637076EA76E11925D0E009F1 /* HermesWhisper02.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HermesWhisper02.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FBB1A5129F97B4C712B7080 /* HermesWhisper02UITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HermesWhisper02UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryView.swift; sourceTree = "<group>"; };
 		87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolEnvelope.swift; sourceTree = "<group>"; };
@@ -274,9 +274,6 @@
 						DevelopmentTeam = "";
 						TestTargetID = 9202FB2BB39553F584D03281;
 					};
-					9202FB2BB39553F584D03281 = {
-						DevelopmentTeam = "";
-					};
 					CF25BDC03E11122E600FB828 = {
 						DevelopmentTeam = "";
 					};
@@ -373,6 +370,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = GL5QL25H5M;
 				INFOPLIST_FILE = HermesWhisper02/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -562,6 +560,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = GL5QL25H5M;
 				INFOPLIST_FILE = HermesWhisper02/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
