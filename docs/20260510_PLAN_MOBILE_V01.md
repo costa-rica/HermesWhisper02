@@ -128,10 +128,10 @@ Commit: `feat: add server registry storage (PLAN_MOBILE phase 1)`.
 
 Tasks:
 
-- [ ] `KeychainStore.swift`: wraps `SecItemAdd/Copy/Update/Delete` for `kSecClassGenericPassword`, service `com.dashanddata.hw02.credentials`, **account = `profile.id.uuidString`**. Use `kSecAttrAccessibleAfterFirstUnlock` per NFR-6.
-- [ ] Stored value: JSON `{ "token": "...", "expiresAt": ISO8601, "email": "..." }`.
-- [ ] API: `save(profileID: UUID, credentials: Credentials)`, `load(profileID: UUID) -> Credentials?`, `delete(profileID: UUID)`. Also expose a strict `loadValid(profileID:) -> Credentials?` that returns nil for expired credentials (Codex Mobile §9).
-- [ ] Tests: in-memory shim for unit tests; a separate UI-test target later for a real-Keychain check (deferred).
+- [x] `KeychainStore.swift`: wraps `SecItemAdd/Copy/Update/Delete` for `kSecClassGenericPassword`, service `com.dashanddata.hw02.credentials`, **account = `profile.id.uuidString`**. Use `kSecAttrAccessibleAfterFirstUnlock` per NFR-6.
+- [x] Stored value: JSON `{ "token": "...", "expiresAt": ISO8601, "email": "..." }`.
+- [x] API: `save(profileID: UUID, credentials: Credentials)`, `load(profileID: UUID) -> Credentials?`, `delete(profileID: UUID)`. Also expose a strict `loadValid(profileID:) -> Credentials?` that returns nil for expired credentials (Codex Mobile §9).
+- [x] Tests: in-memory shim for unit tests; a separate UI-test target later for a real-Keychain check (deferred).
 
 Acceptance:
 

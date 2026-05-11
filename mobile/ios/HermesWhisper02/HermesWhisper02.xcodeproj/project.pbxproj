@@ -16,6 +16,7 @@
 		2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC846F6BECE04324F6BB84BC /* SanityTests.swift */; };
 		3C6C991800927A7E31960A3A /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E051598A268D980BE03316D8 /* AudioPlayer.swift */; };
 		4305B7620109D5A8C611F671 /* VoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E3F69F021639A82B399EC4 /* VoiceView.swift */; };
+		44D2F8368D27EBDC5836DBFF /* KeychainStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF90B9E419D6A0B4A2012971 /* KeychainStoreTests.swift */; };
 		5497E658CD3F0B1603ED29CC /* ProtocolVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 194B82E416B71208C98A3F59 /* ProtocolVersion.swift */; };
 		5683D8434D5C843311C06277 /* PlaybackActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */; };
 		5A37610F429EFA3B6DA0A246 /* AssistantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */; };
@@ -25,8 +26,8 @@
 		7E61B54E3CD337759FA09EF5 /* ProtocolEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */; };
 		80AB87E77B9BC3AF308C4144 /* HermesWhisper02UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2566CEE1730110198F5643E8 /* HermesWhisper02UITests.swift */; };
 		8CC5741727A44337D4862F71 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE8C17852AD10DB8787D2029 /* AppEnvironment.swift */; };
-		AA0000000000000000000001 /* ServerRegistryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002 /* ServerRegistryStoreTests.swift */; };
 		B319005DB46CB24FF1F9E6BE /* ServerRegistryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35AC43133650C131A10D849 /* ServerRegistryStore.swift */; };
+		BE365532AE47D02F8AD12F21 /* ServerRegistryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */; };
 		C66DA6DEEC964B05D23908ED /* ServerInfoProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5FB96F2D4D43BDAFAAD997 /* ServerInfoProbe.swift */; };
 		C6A8DADA80E63BD384C2927E /* TurnId.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */; };
 		CB53FEB55DF7D230D183BD77 /* VerifyCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3ABA93821FD4572861EF6 /* VerifyCodeView.swift */; };
@@ -67,17 +68,18 @@
 		54EA15C53822763A9D3A635F /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		5B669DFC2D6B14B7A353AFD7 /* ServerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProfile.swift; sourceTree = "<group>"; };
 		62E3F69F021639A82B399EC4 /* VoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceView.swift; sourceTree = "<group>"; };
-		637076EA76E11925D0E009F1 /* HermesWhisper02.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HermesWhisper02.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		637076EA76E11925D0E009F1 /* HermesWhisper02.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HermesWhisper02.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryStoreTests.swift; sourceTree = "<group>"; };
 		7FBB1A5129F97B4C712B7080 /* HermesWhisper02UITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HermesWhisper02UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryView.swift; sourceTree = "<group>"; };
 		87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolEnvelope.swift; sourceTree = "<group>"; };
 		99F3ABA93821FD4572861EF6 /* VerifyCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyCodeView.swift; sourceTree = "<group>"; };
-		AA0000000000000000000002 /* ServerRegistryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryStoreTests.swift; sourceTree = "<group>"; };
 		B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantState.swift; sourceTree = "<group>"; };
 		BA62808A5A2F301000D69B55 /* ErrorEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorEnvelope.swift; sourceTree = "<group>"; };
 		BAC1C64D916F91B56A3969B8 /* ServerProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProfileEditView.swift; sourceTree = "<group>"; };
 		BE8C17852AD10DB8787D2029 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		C5D91FB568B339C0D220A48D /* HermesWhisper02Tests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HermesWhisper02Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF90B9E419D6A0B4A2012971 /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
 		D29E39A6F985798169851C0C /* VoiceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceController.swift; sourceTree = "<group>"; };
 		D35AC43133650C131A10D849 /* ServerRegistryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryStore.swift; sourceTree = "<group>"; };
 		E051598A268D980BE03316D8 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
@@ -168,8 +170,9 @@
 		AB5FC726EE57DC95A71E2E4B /* HermesWhisper02Tests */ = {
 			isa = PBXGroup;
 			children = (
+				CF90B9E419D6A0B4A2012971 /* KeychainStoreTests.swift */,
 				EC846F6BECE04324F6BB84BC /* SanityTests.swift */,
-				AA0000000000000000000002 /* ServerRegistryStoreTests.swift */,
+				7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */,
 			);
 			path = HermesWhisper02Tests;
 			sourceTree = "<group>";
@@ -274,6 +277,9 @@
 						DevelopmentTeam = "";
 						TestTargetID = 9202FB2BB39553F584D03281;
 					};
+					9202FB2BB39553F584D03281 = {
+						DevelopmentTeam = GL5QL25H5M;
+					};
 					CF25BDC03E11122E600FB828 = {
 						DevelopmentTeam = "";
 					};
@@ -305,8 +311,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				44D2F8368D27EBDC5836DBFF /* KeychainStoreTests.swift in Sources */,
 				2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */,
-				AA0000000000000000000001 /* ServerRegistryStoreTests.swift in Sources */,
+				BE365532AE47D02F8AD12F21 /* ServerRegistryStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -452,6 +459,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -527,6 +535,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -543,6 +552,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -576,6 +586,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
