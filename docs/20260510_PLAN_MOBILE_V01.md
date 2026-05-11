@@ -81,14 +81,14 @@ mobile/ios/HermesWhisper02/
 
 Tasks:
 
-- [ ] Create the Xcode project: SwiftUI App template, iOS 17, bundle id `com.dashanddata.hermeswhisper02`, organization name "Dash and Data".
-- [ ] Add the file layout above (empty Swift files with placeholders).
-- [ ] Configure `Info.plist`:
+- [x] Create the Xcode project: SwiftUI App template, iOS 17, bundle id `com.dashanddata.hermeswhisper02`, organization name "Dash and Data".
+- [x] Add the file layout above (empty Swift files with placeholders).
+- [x] Configure `Info.plist`:
   - `NSMicrophoneUsageDescription` ("HermesWhisper needs the microphone to capture your voice.")
   - `UIBackgroundModes` includes `audio` (for downlink playback when screen locks)
   - `NSAppTransportSecurity`: default (TLS-only)
-- [ ] Add a custom log subsystem (`com.dashanddata.hw02`) to `Util/Logger.swift`.
-- [ ] First XCTest target with one passing test (sanity).
+- [x] Add a custom log subsystem (`com.dashanddata.hw02`) to `Util/Logger.swift`.
+- [x] First XCTest target with one passing test (sanity).
 
 Acceptance:
 
@@ -106,7 +106,7 @@ Commit: `chore: scaffold ios project (PLAN_MOBILE phase 0)`.
 
 Tasks:
 
-- [ ] `ServerProfile.swift`: `id: UUID, displayName: String, baseURL: URL, notes: String?, authKind: AuthKind`. `AuthKind` is enum with `.bearer2FA` only in v1 (open enum-shaped for extension). Per Codex Mobile §6, **the Keychain account is `id.uuidString` directly** — no separate `keychainRef` field.
+- [x] `ServerProfile.swift`: `id: UUID, displayName: String, baseURL: URL, notes: String?, authKind: AuthKind`. `AuthKind` is enum with `.bearer2FA` only in v1 (open enum-shaped for extension). Per Codex Mobile §6, **the Keychain account is `id.uuidString` directly** — no separate `keychainRef` field.
 - [ ] `ServerRegistryStore.swift`:
   - File path: `FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appending(path: "HermesWhisper02/server_registry.json")`.
   - API: `load() -> [ServerProfile]`, `save(_:)`, `add(_:)`, `update(_:)`, `delete(id:)`, `reorder(_:)`.
