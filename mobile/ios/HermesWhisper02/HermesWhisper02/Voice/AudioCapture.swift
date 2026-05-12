@@ -16,6 +16,7 @@ final class AudioCapture {
     private var interruptionObserver: NSObjectProtocol?
     private var routeChangeObserver: NSObjectProtocol?
     private var processedBufferCount = 0
+    private var isStopping = false
 
     init(
         engine: AVAudioEngine = AVAudioEngine(),
@@ -61,6 +62,14 @@ final class AudioCapture {
     }
 
     func stop() {
+        guard !isStopping else {
+            return
+        }
+        isStopping = true
+        defer {
+            isStopping = false
+        }
+
         if engine.isRunning {
             engine.stop()
         }
@@ -72,6 +81,7 @@ final class AudioCapture {
         let continuation = self.continuation
         self.continuation = nil
         stream = nil
+        continuation?.onTermination = nil
         continuation?.finish()
     }
 
