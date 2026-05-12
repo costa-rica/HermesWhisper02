@@ -198,7 +198,7 @@ Tasks:
   - Resample to 16 kHz mono using `AVAudioConverter`.
   - Convert to `Int16` little-endian.
   - Emit `Data` chunks of 320 samples (20 ms) via `AsyncStream<Data>`.
-  - Configure `AVAudioSession` with category `.playAndRecord`, mode `.voiceChat`, options `[.defaultToSpeaker, .allowBluetooth]`. AGC/echo are handled by the iOS voice processing IO.
+  - Configure `AVAudioSession` with category `.playAndRecord`, mode `.voiceChat`, options `[.defaultToSpeaker, .allowBluetoothHFP]`. AGC/echo are handled by the iOS voice processing IO.
 - [x] Handle interruptions (phone call) and route changes (headphone unplug) by pausing/resuming the stream.
 - [x] Tests (`AudioCaptureFormatTests.swift`): feed a known-frequency Float32 buffer through the resampler+converter, assert 16 kHz Int16 output of the expected sample count.
 

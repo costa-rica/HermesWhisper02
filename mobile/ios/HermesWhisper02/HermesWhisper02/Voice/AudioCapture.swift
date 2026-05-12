@@ -52,15 +52,7 @@ final class AudioCapture {
 
         try configureSession()
         observeAudioSession()
-
-        let inputNode = engine.inputNode
-        let inputFormat = inputNode.outputFormat(forBus: 0)
-        processor = try PCM16FrameProcessor(inputFormat: inputFormat)
-
-        inputNode.removeTap(onBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1_024, format: inputFormat) { [weak self] buffer, _ in
-            self?.process(buffer)
-        }
+        try installInputTap()
 
         engine.prepare()
         try engine.start()
@@ -109,9 +101,20 @@ final class AudioCapture {
         try session.setCategory(
             .playAndRecord,
             mode: .voiceChat,
-            options: [.defaultToSpeaker, .allowBluetooth]
+            options: [.defaultToSpeaker, .allowBluetoothHFP]
         )
         try session.setActive(true)
+    }
+
+    private func installInputTap() throws {
+        let inputNode = engine.inputNode
+        let inputFormat = inputNode.outputFormat(forBus: 0)
+        processor = try PCM16FrameProcessor(inputFormat: inputFormat)
+
+        inputNode.removeTap(onBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1_024, format: inputFormat) { [weak self] buffer, _ in
+            self?.process(buffer)
+        }
     }
 
     private func observeAudioSession() {
@@ -170,13 +173,29 @@ final class AudioCapture {
     private func handleRouteChange(_ notification: Notification) {
         guard isRunning,
               let rawReason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
-              let reason = AVAudioSession.RouteChangeReason(rawValue: rawReason),
-              reason == .oldDeviceUnavailable else {
+              let reason = AVAudioSession.RouteChangeReason(rawValue: rawReason) else {
             return
         }
 
+        switch reason {
+        case .newDeviceAvailable, .oldDeviceUnavailable, .categoryChange, .routeConfigurationChange:
+            restartForCurrentRoute()
+        default:
+            break
+        }
+    }
+
+    private func restartForCurrentRoute() {
         engine.pause()
-        try? engine.start()
+
+        do {
+            try configureSession()
+            try installInputTap()
+            try engine.start()
+        } catch {
+            AppLog.voice.error("audio_capture_route_restart_failed error=\(error.localizedDescription, privacy: .public)")
+            stop()
+        }
     }
 
     private func process(_ buffer: AVAudioPCMBuffer) {
