@@ -219,7 +219,7 @@ Tasks:
 
 - [x] Build & run on a physical iPhone (iOS 17+).
 - [x] Verify mic capture: 16 kHz mono PCM16, 640-byte frames, RMS responds to speaking.
-- [ ] Verify playback of a bundled fixture PCM16 chunk through `PlaybackActor` (introduced in Phase 7) or a temporary direct path.
+- [x] Verify playback of a bundled fixture PCM16 chunk through `PlaybackActor` (introduced in Phase 7) or a temporary direct path. Validated with real mock downlink PCM16 chunks from the public avatar08 API on 2026-05-12.
 - [ ] Verify route changes: unplug headphones mid-playback, accept a phone-call interruption (`AVAudioSession.interruptionNotification`), reconnect Bluetooth — the audio session recovers and the UI lands in an explicit recoverable state.
 - [x] Capture screenshots / a short device log into `mobile/docs/device_bringup_5_5.md` for the record.
 
@@ -277,7 +277,7 @@ Tasks:
   - Feed a known-loud Float32 buffer to `BargeInDetector` while it is "active"; assert it fires within 100 ms of synthetic onset.
   - Feed the same buffer while it is "inactive" (no playback); assert it does NOT fire.
   - Concurrency test: rapid `enqueue`/`flushAndStop` interleavings on `PlaybackActor` never schedule a buffer after a flush.
-- [ ] Manual on-device barge-in test (extends Phase 5.5 device): speak over the assistant; measure mic-RMS-onset → silence by listening + log timestamps.
+- [x] Manual on-device barge-in test (extends Phase 5.5 device): speak over the assistant; measure mic-RMS-onset → silence by listening + log timestamps. Validated by audible playback stop plus `voice_barge_in_detected action=flush_playback` in Xcode logs on 2026-05-12.
 
 Acceptance:
 
@@ -294,11 +294,11 @@ Commit: `feat: add tts playback with barge-in (PLAN_MOBILE phase 7)`.
 
 Tasks:
 
-- [ ] Add a settings toggle on `VoiceView`: PTT vs. continuous. Persist to `UserDefaults` per profile.
-- [ ] PTT mode: `AudioCapture` only emits frames while the talk button is pressed; `client_hello.ptt_mode = true`.
-- [ ] Continuous mode: capture runs while the voice screen is active; `ptt_mode = false`.
-- [ ] In both modes, server VAD still drives turn boundaries; client never sends an `end_of_utterance` signal.
-- [ ] Visual state: show `assistant_state` (`ack`/`thinking`/`answer`/`idle`) on the voice screen.
+- [x] Add a settings toggle on `VoiceView`: PTT vs. continuous. Persist to `UserDefaults` per profile.
+- [x] PTT mode: `AudioCapture` only emits frames while the talk button is pressed; `client_hello.ptt_mode = true`.
+- [x] Continuous mode: capture runs while the voice screen is active; `ptt_mode = false`.
+- [x] In both modes, server VAD still drives turn boundaries; client never sends an `end_of_utterance` signal.
+- [x] Visual state: show `assistant_state` (`ack`/`thinking`/`answer`/`idle`) on the voice screen.
 
 Acceptance:
 

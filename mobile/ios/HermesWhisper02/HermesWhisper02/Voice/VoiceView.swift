@@ -4,10 +4,13 @@ struct VoiceView: View {
     @Environment(AppEnvironment.self) private var appEnvironment
 
     @State private var voiceController = VoiceController()
+    private let interactionModeStore = VoiceInteractionModeStore()
     @State private var voiceTask: Task<Void, Never>?
     @State private var audioError: String?
     @State private var logoutError: String?
     @State private var showingServers = false
+    @State private var interactionMode: VoiceInteractionMode = .continuous
+    @State private var isPressingPTT = false
 
     var body: some View {
         VStack(spacing: 16) {
@@ -36,16 +39,50 @@ struct VoiceView: View {
                         .multilineTextAlignment(.center)
                 }
             }
-            Button {
-                toggleAudioCapture()
-            } label: {
+            Picker("Mode", selection: $interactionMode) {
+                ForEach(VoiceInteractionMode.allCases) { mode in
+                    Text(mode.label).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 300)
+            .onChange(of: interactionMode) { _, newMode in
+                interactionModeStore.save(newMode, profileID: appEnvironment.activeProfile.id)
+                stopAudioCapture()
+            }
+            if interactionMode == .continuous {
+                Button {
+                    toggleAudioCapture()
+                } label: {
+                    Label(
+                        voiceController.isRunning ? "Stop voice" : "Start voice",
+                        systemImage: voiceController.isRunning ? "mic.slash" : "mic"
+                    )
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(voiceController.isConnecting)
+            } else {
                 Label(
-                    voiceController.isRunning ? "Stop voice" : "Start voice",
-                    systemImage: voiceController.isRunning ? "mic.slash" : "mic"
+                    isPressingPTT ? "Release to stop" : "Hold to talk",
+                    systemImage: isPressingPTT ? "mic.fill" : "mic"
+                )
+                .frame(minWidth: 160)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 14)
+                .foregroundStyle(.white)
+                .background(isPressingPTT ? Color.red : Color.accentColor)
+                .clipShape(Capsule())
+                .opacity(voiceController.isConnecting ? 0.6 : 1)
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in
+                            startPushToTalkIfNeeded()
+                        }
+                        .onEnded { _ in
+                            stopPushToTalk()
+                        }
                 )
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(voiceController.isConnecting)
             Button("Log out", role: .destructive) {
                 logout()
             }
@@ -58,6 +95,12 @@ struct VoiceView: View {
             .buttonStyle(.bordered)
         }
         .padding()
+        .onAppear {
+            interactionMode = interactionModeStore.load(profileID: appEnvironment.activeProfile.id)
+        }
+        .onChange(of: appEnvironment.activeProfile.id) { _, profileID in
+            interactionMode = interactionModeStore.load(profileID: profileID)
+        }
         .sheet(isPresented: $showingServers) {
             NavigationStack {
                 ServerRegistryView()
@@ -115,10 +158,14 @@ struct VoiceView: View {
     private func startAudioCapture() {
         voiceTask = Task {
             do {
-                try await voiceController.start(profile: appEnvironment.activeProfile)
+                try await voiceController.start(
+                    profile: appEnvironment.activeProfile,
+                    pttMode: interactionMode.pttMode
+                )
             } catch {
                 await MainActor.run {
                     audioError = error.localizedDescription
+                    isPressingPTT = false
                 }
             }
         }
@@ -128,6 +175,22 @@ struct VoiceView: View {
         voiceTask?.cancel()
         voiceTask = nil
         voiceController.disconnect()
+    }
+
+    private func startPushToTalkIfNeeded() {
+        guard !isPressingPTT, !voiceController.isRunning, !voiceController.isConnecting else {
+            return
+        }
+        isPressingPTT = true
+        startAudioCapture()
+    }
+
+    private func stopPushToTalk() {
+        guard isPressingPTT else {
+            return
+        }
+        isPressingPTT = false
+        stopAudioCapture()
     }
 
     private func logout() {

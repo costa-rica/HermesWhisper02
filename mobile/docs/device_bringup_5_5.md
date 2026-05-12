@@ -1,6 +1,6 @@
 # Physical-device audio bring-up, Phase 5.5
 
-This note records the physical-device audio checks completed before starting mobile Phase 6. The full Phase 5.5 acceptance is not complete yet because playback through `PlaybackActor` and phone-call interruption recovery are still planned for later phases.
+This note records the physical-device audio checks completed before and after mobile Phase 6/7. Playback and barge-in have now been validated against real mock downlink audio from the public avatar08 API. Phone-call interruption recovery remains pending.
 
 ## Test context
 
@@ -25,6 +25,8 @@ This note records the physical-device audio checks completed before starting mob
    - PCM16 little-endian
    - 320 samples per frame
    - 640 bytes per frame
+6. Verified downlink mock PCM16 playback from the public avatar08 API through `PlaybackActor`.
+7. Verified local barge-in: speaking while mock TTS played flushed playback and left uplink capture running.
 
 ## Device log evidence
 
@@ -58,20 +60,20 @@ AVAudioEngine.mm:192 Engine could not initialize, error = -10868
 3. Route changes:
    - Partially passed.
    - Bluetooth disconnected and connected tests passed for capture.
-   - Mid-playback route recovery remains pending because playback is not implemented yet.
+   - Playback with AirPods connected passed during public-server mock testing.
+   - Mid-playback route recovery on an unplug/reconnect event remains pending.
 4. Playback fixture:
-   - Pending.
-   - `PlaybackActor` and `AudioPlayer` are still placeholders.
+   - Passed using real mock downlink audio from the public avatar08 API.
+   - Xcode logs showed `voice_controller_playback_enqueued` for `ack` and `answer` chunks.
 5. Phone-call interruption recovery:
    - Pending.
    - The app handles interruption notifications in code, but this has not yet been manually verified on device.
+6. Barge-in:
+   - Passed.
+   - User speech over mock TTS stopped playback and produced `voice_barge_in_detected action=flush_playback`.
 
 ## Follow-up
 
-1. Finish Phase 6 WebSocket integration.
-2. Implement Phase 7 playback through `PlaybackActor`.
-3. Revisit Phase 5.5 acceptance after Phase 7:
-   - Verify playback of a bundled PCM16 fixture or real downlink audio.
-   - Verify route changes during playback.
-   - Verify phone-call interruption recovery.
-4. Keep the current audio route logs until Phase 7 device playback and barge-in testing are complete.
+1. Verify phone-call interruption recovery on a physical iPhone.
+2. Verify route changes during active playback after the Phase 8 mode UI lands.
+3. Keep the current audio route logs until phone-call and mid-playback route recovery are complete.
