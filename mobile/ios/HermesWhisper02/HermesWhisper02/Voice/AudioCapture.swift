@@ -52,7 +52,7 @@ final class AudioCapture {
 
         try configureSession()
         observeAudioSession()
-        installInputTap()
+        try installInputTap()
 
         engine.prepare()
         try engine.start()
@@ -106,12 +106,18 @@ final class AudioCapture {
         try session.setActive(true)
     }
 
-    private func installInputTap() {
+    private func installInputTap() throws {
         let inputNode = engine.inputNode
+        let inputFormat = inputNode.inputFormat(forBus: 0)
+
+        guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0 else {
+            throw PCM16FrameProcessor.ProcessorError.unsupportedInputFormat
+        }
+
         processor = nil
 
         inputNode.removeTap(onBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1_024, format: nil) { [weak self] buffer, _ in
+        inputNode.installTap(onBus: 0, bufferSize: 1_024, format: inputFormat) { [weak self] buffer, _ in
             self?.process(buffer)
         }
     }
@@ -185,11 +191,16 @@ final class AudioCapture {
     }
 
     private func restartForCurrentRoute() {
-        engine.pause()
+        if engine.isRunning {
+            engine.stop()
+        }
+        engine.inputNode.removeTap(onBus: 0)
+        engine.reset()
 
         do {
             try configureSession()
-            processor = nil
+            try installInputTap()
+            engine.prepare()
             try engine.start()
         } catch {
             AppLog.voice.error("audio_capture_route_restart_failed error=\(error.localizedDescription, privacy: .public)")
