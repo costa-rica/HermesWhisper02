@@ -52,7 +52,7 @@ final class AudioCapture {
 
         try configureSession()
         observeAudioSession()
-        try installInputTap()
+        installInputTap()
 
         engine.prepare()
         try engine.start()
@@ -106,13 +106,12 @@ final class AudioCapture {
         try session.setActive(true)
     }
 
-    private func installInputTap() throws {
+    private func installInputTap() {
         let inputNode = engine.inputNode
-        let inputFormat = inputNode.outputFormat(forBus: 0)
-        processor = try PCM16FrameProcessor(inputFormat: inputFormat)
+        processor = nil
 
         inputNode.removeTap(onBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1_024, format: inputFormat) { [weak self] buffer, _ in
+        inputNode.installTap(onBus: 0, bufferSize: 1_024, format: nil) { [weak self] buffer, _ in
             self?.process(buffer)
         }
     }
@@ -190,7 +189,7 @@ final class AudioCapture {
 
         do {
             try configureSession()
-            try installInputTap()
+            processor = nil
             try engine.start()
         } catch {
             AppLog.voice.error("audio_capture_route_restart_failed error=\(error.localizedDescription, privacy: .public)")
@@ -199,11 +198,8 @@ final class AudioCapture {
     }
 
     private func process(_ buffer: AVAudioPCMBuffer) {
-        guard var processor else {
-            return
-        }
-
         do {
+            var processor = try processor(for: buffer.format)
             let chunks = try processor.append(buffer)
             self.processor = processor
             for chunk in chunks where chunk.count == Self.bytesPerFrame {
@@ -213,6 +209,14 @@ final class AudioCapture {
             AppLog.voice.error("audio_capture_process_failed error=\(error.localizedDescription, privacy: .public)")
             stop()
         }
+    }
+
+    private func processor(for format: AVAudioFormat) throws -> PCM16FrameProcessor {
+        if let processor, processor.accepts(format) {
+            return processor
+        }
+
+        return try PCM16FrameProcessor(inputFormat: format)
     }
 }
 
@@ -260,6 +264,13 @@ struct PCM16FrameProcessor {
         self.outputFormat = outputFormat
         self.converter = converter
         self.samplesPerFrame = samplesPerFrame
+    }
+
+    func accepts(_ format: AVAudioFormat) -> Bool {
+        inputFormat.commonFormat == format.commonFormat
+            && inputFormat.sampleRate == format.sampleRate
+            && inputFormat.channelCount == format.channelCount
+            && inputFormat.isInterleaved == format.isInterleaved
     }
 
     mutating func append(_ inputBuffer: AVAudioPCMBuffer) throws -> [Data] {

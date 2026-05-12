@@ -22,7 +22,7 @@ struct VoiceView: View {
                 Text("Mic RMS")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                ProgressView(value: min(microphoneRMS * 8, 1))
+                ProgressView(value: min(microphoneRMS * 3, 1))
                     .frame(maxWidth: 220)
                 Text(microphoneRMS, format: .number.precision(.fractionLength(3)))
                     .font(.caption.monospacedDigit())
