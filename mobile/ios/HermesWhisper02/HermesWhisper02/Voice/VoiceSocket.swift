@@ -35,7 +35,16 @@ final class VoiceSocket {
     private static let reconnectDelaysNanoseconds: [UInt64] = [
         200_000_000,
         500_000_000,
-        1_000_000_000
+        1_000_000_000,
+        2_000_000_000,
+        3_000_000_000,
+        5_000_000_000,
+        5_000_000_000,
+        5_000_000_000,
+        5_000_000_000,
+        5_000_000_000,
+        5_000_000_000,
+        5_000_000_000
     ]
 
     private let profile: ServerProfile
@@ -52,6 +61,7 @@ final class VoiceSocket {
     private var sendQueueDepth = 0
     private var currentSessionID: String?
     private var isReconnecting = false
+    private var droppedFramesDuringReconnect = 0
     private var didCloseIntentionally = false
 
     private let eventStream: AsyncStream<VoiceEvent>
@@ -125,6 +135,18 @@ final class VoiceSocket {
     }
 
     func sendBinary(_ data: Data) async throws {
+        if isReconnecting {
+            droppedFramesDuringReconnect += 1
+            if droppedFramesDuringReconnect == 1 || droppedFramesDuringReconnect.isMultiple(of: 30) {
+                AppLog.voice.warning(
+                    """
+                    voice_socket_binary_dropped_during_reconnect \
+                    dropped=\(self.droppedFramesDuringReconnect, privacy: .public) bytes=\(data.count, privacy: .public)
+                    """
+                )
+            }
+            return
+        }
         try await waitUntilConnected()
         do {
             try await sendBinaryOnce(data)
@@ -313,6 +335,7 @@ final class VoiceSocket {
             try? await Task.sleep(nanoseconds: delay)
             do {
                 try await openWebSocket(sessionID: currentSessionID)
+                droppedFramesDuringReconnect = 0
                 AppLog.voice.info(
                     """
                     voice_socket_reconnected attempt=\(attemptIndex + 1, privacy: .public) \

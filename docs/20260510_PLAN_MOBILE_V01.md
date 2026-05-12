@@ -315,7 +315,7 @@ Commit: `feat: add ptt and continuous modes (PLAN_MOBILE phase 8)`.
 
 Tasks:
 
-- [x] In `VoiceSocket`, on `.closed(error)` while the user expects a session, reconnect with exponential backoff (200 ms → 1 s, max 3 attempts) before surfacing an error.
+- [x] In `VoiceSocket`, on `.closed(error)` while the user expects a session, reconnect with exponential backoff (200 ms → 5 s, approx. 37 s total) before surfacing an error.
 - [x] On reconnect, send `client_hello.session_id = previousSessionId`.
 - [x] On `session_started.resumed=true`, transparently continue. On `resumed=false`, surface a small toast ("Reconnected; previous turn lost.") and reset turn state.
 - [x] Tests: simulate a `URLSession` close mid-turn; assert reconnect attempts and final state.
