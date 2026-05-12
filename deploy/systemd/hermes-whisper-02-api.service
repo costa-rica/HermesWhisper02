@@ -1,0 +1,26 @@
+[Unit]
+Description=HermesWhisper02 API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+WorkingDirectory=/opt/hermes-whisper-02/api
+EnvironmentFile=/etc/hermes-whisper-02/env
+ExecStart=/usr/local/bin/uv run --project /opt/hermes-whisper-02/api uvicorn app.main:app --host 127.0.0.1 --port 8765
+Restart=on-failure
+RestartSec=2
+StartLimitIntervalSec=60
+StartLimitBurst=5
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/log/hermes-whisper-02 /var/lib/hermes-whisper-02
+
+[Install]
+WantedBy=multi-user.target
