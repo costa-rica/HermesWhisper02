@@ -238,15 +238,15 @@ Commit: `chore: physical device audio bring-up notes (PLAN_MOBILE phase 5.5)`.
 
 Tasks:
 
-- [ ] `ProtocolEnvelope.swift`: Codable types for every frame in `20260510_PROTOCOL_V01.md` §4. Discriminated union via `type` field. Encode/decode with `JSONDecoder` + a small dispatch helper.
-- [ ] `VoiceSocket.swift`:
+- [x] `ProtocolEnvelope.swift`: Codable types for every frame in `20260510_PROTOCOL_V01.md` §4. Discriminated union via `type` field. Encode/decode with `JSONDecoder` + a small dispatch helper.
+- [x] `VoiceSocket.swift`:
   - `URLSession.shared.webSocketTask(with: request)` with `Authorization: Bearer ...` header. **Pre-flight:** refuse to open if `KeychainStore.loadValid(profileID:)` returns nil (expired token → return to login per Codex Mobile §9).
   - `connect()`, `sendJSON(_:)`, `sendBinary(_:)`, `close()`.
   - `events: AsyncStream<VoiceEvent>` where `VoiceEvent` is `.json(ServerFrame) | .binaryAudio(audioChunkPrelude, Data) | .closed(Error?)`.
   - **Audio prelude pairing:** when a JSON `audio_chunk` arrives, store it as "expected next binary"; when the next binary frame arrives, pair them and emit `.binaryAudio`. If the order ever inverts, log + close with a protocol error.
   - **Observability hooks** (Codex Mobile §3): app-level heartbeat (`{"type":"ping"}` every 15 s, expects `{"type":"pong"}` within 5 s), per-`turn_id`/`source` `seq` validation (out-of-order or duplicate → log + close), backpressure log when `sendBinary` queue depth exceeds a threshold, and packet-to-playout timing logs. These let us decide post-v1 whether to migrate to WebRTC with data, not guesswork.
-- [ ] `VoiceController.swift`: orchestrate `AudioCapture.frames → VoiceSocket.sendBinary` and `VoiceSocket.events → PlaybackActor.enqueue` (PlaybackActor in next phase).
-- [ ] **Tests use an embedded `Network.framework` WS server as the primary test path** (Codex Mobile §7 — not optional). Cover: prelude→binary pairing happy path; binary without prelude closes with protocol error; prelude byte count mismatch closes with protocol error; reconnect sends previous `session_id`; out-of-order / duplicate `seq` closes with protocol error; `ProtocolEnvelopeTests` round-trips every frame type.
+- [x] `VoiceController.swift`: orchestrate `AudioCapture.frames → VoiceSocket.sendBinary` and `VoiceSocket.events → PlaybackActor.enqueue` (PlaybackActor in next phase).
+- [x] **Tests use an embedded `Network.framework` WS server as the primary test path** (Codex Mobile §7 — not optional). Cover: prelude→binary pairing happy path; binary without prelude closes with protocol error; prelude byte count mismatch closes with protocol error; reconnect sends previous `session_id`; out-of-order / duplicate `seq` closes with protocol error; `ProtocolEnvelopeTests` round-trips every frame type.
 
 Acceptance:
 
@@ -298,7 +298,7 @@ Tasks:
 - [ ] PTT mode: `AudioCapture` only emits frames while the talk button is pressed; `client_hello.ptt_mode = true`.
 - [ ] Continuous mode: capture runs while the voice screen is active; `ptt_mode = false`.
 - [ ] In both modes, server VAD still drives turn boundaries; client never sends an `end_of_utterance` signal.
-- [ ] Visual state: show `assistant_state` (`ack`/`thinking`/`answering`/`idle`) on the voice screen.
+- [ ] Visual state: show `assistant_state` (`ack`/`thinking`/`answer`/`idle`) on the voice screen.
 
 Acceptance:
 

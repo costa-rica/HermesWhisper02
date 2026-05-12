@@ -19,14 +19,14 @@ final class AppEnvironment {
         activeProfile: ServerProfile = ServerRegistryStore.defaultProfile,
         keychain: KeychainStore = KeychainStore(),
         session: URLSession = .shared,
-        voiceController: VoiceDisconnecting? = VoiceController()
+        voiceController: VoiceDisconnecting? = nil
     ) {
         let initialCredentials = try? keychain.loadValid(profileID: activeProfile.id)
 
         self.activeProfile = activeProfile
         self.keychain = keychain
         self.session = session
-        self.voiceController = voiceController
+        self.voiceController = voiceController ?? VoiceController()
         self.credentials = initialCredentials
         self.isAuthenticated = initialCredentials != nil
     }

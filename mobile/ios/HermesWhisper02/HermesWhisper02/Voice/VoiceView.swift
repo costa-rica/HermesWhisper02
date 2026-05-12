@@ -3,10 +3,8 @@ import SwiftUI
 struct VoiceView: View {
     @Environment(AppEnvironment.self) private var appEnvironment
 
-    @State private var audioCapture = AudioCapture()
-    @State private var audioTask: Task<Void, Never>?
-    @State private var isCapturingAudio = false
-    @State private var microphoneRMS = 0.0
+    @State private var voiceController = VoiceController()
+    @State private var voiceTask: Task<Void, Never>?
     @State private var audioError: String?
     @State private var logoutError: String?
     @State private var showingServers = false
@@ -22,21 +20,32 @@ struct VoiceView: View {
                 Text("Mic RMS")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                ProgressView(value: min(microphoneRMS * 3, 1))
+                ProgressView(value: min(voiceController.microphoneRMS * 3, 1))
                     .frame(maxWidth: 220)
-                Text(microphoneRMS, format: .number.precision(.fractionLength(3)))
+                Text(voiceController.microphoneRMS, format: .number.precision(.fractionLength(3)))
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
+            }
+            VStack(spacing: 6) {
+                Text(voiceController.assistantState.rawValue)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if !voiceController.latestTranscript.isEmpty {
+                    Text(voiceController.latestTranscript)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                }
             }
             Button {
                 toggleAudioCapture()
             } label: {
                 Label(
-                    isCapturingAudio ? "Stop mic" : "Start mic",
-                    systemImage: isCapturingAudio ? "mic.slash" : "mic"
+                    voiceController.isRunning ? "Stop voice" : "Start voice",
+                    systemImage: voiceController.isRunning ? "mic.slash" : "mic"
                 )
             }
             .buttonStyle(.borderedProminent)
+            .disabled(voiceController.isConnecting)
             Button("Log out", role: .destructive) {
                 logout()
             }
@@ -96,7 +105,7 @@ struct VoiceView: View {
     }
 
     private func toggleAudioCapture() {
-        if isCapturingAudio {
+        if voiceController.isRunning || voiceController.isConnecting {
             stopAudioCapture()
         } else {
             startAudioCapture()
@@ -104,33 +113,21 @@ struct VoiceView: View {
     }
 
     private func startAudioCapture() {
-        let frames = audioCapture.frames()
-
-        do {
-            try audioCapture.start()
-            isCapturingAudio = true
-            audioTask = Task {
-                for await frame in frames {
-                    let rms = AudioCapture.rms(forPCM16Frame: frame)
-                    await MainActor.run {
-                        microphoneRMS = rms
-                    }
+        voiceTask = Task {
+            do {
+                try await voiceController.start(profile: appEnvironment.activeProfile)
+            } catch {
+                await MainActor.run {
+                    audioError = error.localizedDescription
                 }
             }
-        } catch {
-            audioCapture.stop()
-            audioError = error.localizedDescription
-            isCapturingAudio = false
-            microphoneRMS = 0
         }
     }
 
     private func stopAudioCapture() {
-        audioTask?.cancel()
-        audioTask = nil
-        audioCapture.stop()
-        isCapturingAudio = false
-        microphoneRMS = 0
+        voiceTask?.cancel()
+        voiceTask = nil
+        voiceController.disconnect()
     }
 
     private func logout() {
