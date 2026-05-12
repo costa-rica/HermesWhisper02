@@ -5,6 +5,7 @@ import Foundation
 final class AppEnvironment {
     private let keychain: KeychainStore
     private let session: URLSession
+    private let voiceController: VoiceDisconnecting?
 
     var activeProfile: ServerProfile
     var credentials: Credentials?
@@ -17,13 +18,15 @@ final class AppEnvironment {
     init(
         activeProfile: ServerProfile = ServerRegistryStore.defaultProfile,
         keychain: KeychainStore = KeychainStore(),
-        session: URLSession = .shared
+        session: URLSession = .shared,
+        voiceController: VoiceDisconnecting? = VoiceController()
     ) {
         let initialCredentials = try? keychain.loadValid(profileID: activeProfile.id)
 
         self.activeProfile = activeProfile
         self.keychain = keychain
         self.session = session
+        self.voiceController = voiceController
         self.credentials = initialCredentials
         self.isAuthenticated = initialCredentials != nil
     }
@@ -48,6 +51,12 @@ final class AppEnvironment {
     func refreshCredentials() {
         credentials = try? keychain.loadValid(profileID: activeProfile.id)
         isAuthenticated = credentials != nil
+    }
+
+    func switchActiveProfile(_ profile: ServerProfile) {
+        voiceController?.disconnect()
+        activeProfile = profile
+        refreshCredentials()
     }
 
     private func authService() -> AuthService {

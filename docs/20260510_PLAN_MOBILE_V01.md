@@ -171,12 +171,12 @@ Commit: `feat: add auth service and login flow (PLAN_MOBILE phase 3)`.
 
 Tasks:
 
-- [ ] `ServerRegistryView.swift`: SwiftUI `List` with swipe-to-delete and `EditMode` for reorder. Tapping a profile sets it active; tap-and-hold or chevron opens edit.
-- [ ] `ServerProfileEditView.swift`: form with `displayName`, `baseURL`, optional `notes`. "Probe" button calls `ServerInfoProbe.fetch(baseURL)` and validates the URL + auto-fills `displayName` if blank.
-- [ ] `ServerInfoProbe.swift`: `GET /api/server/info`, returns the parsed payload or throws.
-- [ ] On switching active profile: tear down any open WS (`VoiceController.disconnect()`), clear in-memory credentials, navigate to `LoginView` if the new profile has no valid token.
-- [ ] Surface active server name in the main voice screen header.
-- [ ] Tests: probe parses `server/info` payload; switching profiles invalidates in-memory state.
+- [x] `ServerRegistryView.swift`: SwiftUI `List` with swipe-to-delete and `EditMode` for reorder. Tapping a profile sets it active; tap-and-hold or chevron opens edit.
+- [x] `ServerProfileEditView.swift`: form with `displayName`, `baseURL`, optional `notes`. "Probe" button calls `ServerInfoProbe.fetch(baseURL)` and validates the URL + auto-fills `displayName` if blank.
+- [x] `ServerInfoProbe.swift`: `GET /api/server/info`, returns the parsed payload or throws.
+- [x] On switching active profile: tear down any open WS (`VoiceController.disconnect()`), clear in-memory credentials, navigate to `LoginView` if the new profile has no valid token.
+- [x] Surface active server name in the main voice screen header.
+- [x] Tests: probe parses `server/info` payload; switching profiles invalidates in-memory state.
 
 Acceptance:
 

@@ -8,6 +8,7 @@ struct LoginView: View {
     @State private var isSending = false
     @State private var errorMessage: String?
     @State private var verificationEmail: String?
+    @State private var showingServers = false
 
     var body: some View {
         Form {
@@ -44,8 +45,23 @@ struct LoginView: View {
             }
         }
         .navigationTitle("Login")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingServers = true
+                } label: {
+                    Image(systemName: "server.rack")
+                }
+                .accessibilityLabel("Servers")
+            }
+        }
         .navigationDestination(item: $verificationEmail) { email in
             VerifyCodeView(email: email)
+        }
+        .sheet(isPresented: $showingServers) {
+            NavigationStack {
+                ServerRegistryView()
+            }
         }
     }
 

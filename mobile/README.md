@@ -46,7 +46,8 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8765
 3. Current app behavior.
    - The app opens to the login flow when no valid Keychain token exists.
    - Successful email-code verification persists the bearer token and lands on the placeholder voice view.
-   - Server registry UI, audio capture, WebSocket, playback, and reconnect behavior are planned in later mobile phases.
+   - The server registry can list, add, edit, reorder, delete, probe, and switch server profiles.
+   - Audio capture, WebSocket, playback, and reconnect behavior are planned in later mobile phases.
 
 ## Testing
 
