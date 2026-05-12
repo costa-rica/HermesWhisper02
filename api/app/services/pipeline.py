@@ -7,8 +7,8 @@ from loguru import logger
 from app.config import Settings, get_settings
 from app.models import VoiceMessage
 from app.pipecat_processors.ack_processor import DeterministicAckProcessor
-from app.pipecat_processors.mocks import MockSTT
 from app.services.front_llm import FrontAnswerProcessor
+from app.services.stt import PipelineSTT, create_pipeline_stt
 from app.services.tts import PipelineTTS, create_pipeline_tts
 
 
@@ -34,22 +34,23 @@ class MockVoicePipeline:
         conversation_id: str | None = None,
         context_messages: list[VoiceMessage] | None = None,
         settings: Settings | None = None,
+        stt: PipelineSTT | None = None,
         tts: PipelineTTS | None = None,
     ) -> None:
         settings = settings or get_settings()
-        self.stt = MockSTT()
+        self.stt = stt or create_pipeline_stt(settings)
         self.ack = DeterministicAckProcessor()
         self.front_llm = FrontAnswerProcessor(conversation_id=conversation_id or str(uuid4()))
         self.tts = tts or create_pipeline_tts(settings)
         self.context_messages = context_messages or []
 
-    async def process_audio(self, audio: bytes) -> PipelineTurn:
+    async def process_audio(self, audio: bytes, sample_rate: int = 16_000) -> PipelineTurn:
         vad_done = perf_counter()
-        transcript_frame = self.stt.transcribe(audio)
+        transcript_frame = await self.stt.transcribe(audio, sample_rate)
         return await self.process_transcript(transcript_frame, vad_done)
 
     async def process_text(self, text: str) -> PipelineTurn:
-        transcript_frame = self.stt.transcribe(b"")
+        transcript_frame = await self.stt.transcribe(b"")
         transcript_frame.text = text
         return await self.process_transcript(transcript_frame, perf_counter())
 
@@ -102,11 +103,13 @@ def build_pipeline(
     conversation_id: str | None = None,
     context_messages: list[VoiceMessage] | None = None,
     settings: Settings | None = None,
+    stt: PipelineSTT | None = None,
     tts: PipelineTTS | None = None,
 ) -> MockVoicePipeline:
     return MockVoicePipeline(
         conversation_id=conversation_id,
         context_messages=context_messages,
         settings=settings,
+        stt=stt,
         tts=tts,
     )

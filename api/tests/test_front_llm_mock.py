@@ -25,7 +25,7 @@ async def test_trivial_turn_has_no_ack_or_hermes_call() -> None:
 async def test_front_answer_processor_calls_hermes_mock() -> None:
     processor = FrontAnswerProcessor(conversation_id="conversation-1")
     pipeline = build_pipeline()
-    transcript = pipeline.stt.transcribe(b"")
+    transcript = await pipeline.stt.transcribe(b"")
     transcript.text = "what changed today"
 
     answer = await processor.answer(transcript)
@@ -44,7 +44,7 @@ async def test_front_answer_processor_degrades_when_hermes_fails(monkeypatch) ->
     )
     processor = FrontAnswerProcessor(conversation_id="conversation-1")
     pipeline = build_pipeline()
-    transcript = pipeline.stt.transcribe(b"")
+    transcript = await pipeline.stt.transcribe(b"")
     transcript.text = "what changed today"
 
     answer = await processor.answer(transcript)

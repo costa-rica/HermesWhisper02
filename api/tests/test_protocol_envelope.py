@@ -41,7 +41,7 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
             }
         )
         started = websocket.receive_json()
-        websocket.send_bytes(b"\x00\x00" * 16_000)
+        _send_test_turn_audio(websocket)
         transcript = websocket.receive_json()
         ack_state = websocket.receive_json()
         prelude = websocket.receive_json()
@@ -113,7 +113,7 @@ def test_voice_ws_ping_is_control_only(tmp_path, monkeypatch) -> None:
         websocket.receive_json()
         websocket.send_json({"type": "ping", "ts": 12.5})
         pong = websocket.receive_json()
-        websocket.send_bytes(b"\x00\x00" * 16_000)
+        _send_test_turn_audio(websocket)
         transcript = websocket.receive_json()
 
     assert pong == {"type": "pong", "ts": 12.5}
@@ -210,6 +210,15 @@ def _client_hello(session_id: str | None = None) -> dict:
     if session_id is not None:
         frame["session_id"] = session_id
     return frame
+
+
+def _send_test_turn_audio(websocket) -> None:
+    speech_chunk = (3000).to_bytes(2, byteorder="little", signed=True) * 320
+    silence_chunk = b"\x00\x00" * 320
+    for _ in range(40):
+        websocket.send_bytes(speech_chunk)
+    for _ in range(60):
+        websocket.send_bytes(silence_chunk)
 
 
 def _seed_user_sync(email: str, password: str) -> str:

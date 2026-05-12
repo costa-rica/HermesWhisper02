@@ -1,4 +1,5 @@
 import json
+import math
 from typing import Any
 
 from fastapi import APIRouter, WebSocket
@@ -20,7 +21,12 @@ from app.services.voice_store import VoiceStore
 router = APIRouter(tags=["voice"])
 
 PROTOCOL_VERSION = 1
-UPLINK_TURN_BYTES = 16_000 * 2
+UPLINK_SAMPLE_RATE = 16_000
+UPLINK_BYTES_PER_SAMPLE = 2
+MIN_TURN_SECONDS = 0.8
+MAX_TURN_SECONDS = 8.0
+END_SILENCE_SECONDS = 1.1
+SPEECH_RMS_THRESHOLD = 0.003
 
 
 @router.websocket("/ws/voice")
@@ -86,6 +92,7 @@ async def _voice_loop(
 ) -> None:
     pipeline = PassthroughEchoPipeline(adapter)
     mock_pipeline = build_pipeline(conversation_id, context_messages)
+    segmenter = AudioTurnSegmenter()
     active_turn_id: str | None = None
     while True:
         websocket = adapter.websocket
@@ -113,6 +120,7 @@ async def _voice_loop(
                 )
                 active_turn_id = None
                 pipeline = PassthroughEchoPipeline(adapter)
+                segmenter.reset()
             elif frame_type == "client_bye":
                 await websocket.close(code=1000)
                 return
@@ -122,9 +130,9 @@ async def _voice_loop(
         elif "bytes" in message:
             input_frame = await adapter.receive_input_frame(message)
             if input_frame is not None:
-                pipeline.buffered_audio_bytes += len(input_frame.audio)
-                if pipeline.buffered_audio_bytes >= UPLINK_TURN_BYTES:
-                    turn = await mock_pipeline.process_audio(input_frame.audio)
+                segment = segmenter.add(input_frame.audio)
+                if segment is not None:
+                    turn = await mock_pipeline.process_audio(segment, UPLINK_SAMPLE_RATE)
                     active_turn_id = turn.turn_id
                     try:
                         await store.start_turn(session_id, turn.turn_id)
@@ -162,6 +170,58 @@ async def _voice_loop(
                     active_turn_id = None
                     await adapter.websocket.send_json({"type": "assistant_state", "state": "idle"})
                     pipeline = PassthroughEchoPipeline(adapter)
+
+
+class AudioTurnSegmenter:
+    def __init__(self) -> None:
+        self.buffer = bytearray()
+        self.speech_seen = False
+        self.trailing_silence_seconds = 0.0
+
+    def add(self, audio: bytes) -> bytes | None:
+        duration = len(audio) / (UPLINK_SAMPLE_RATE * UPLINK_BYTES_PER_SAMPLE)
+        rms = _pcm16_rms(audio)
+        if rms >= SPEECH_RMS_THRESHOLD:
+            self.speech_seen = True
+            self.trailing_silence_seconds = 0.0
+        elif self.speech_seen:
+            self.trailing_silence_seconds += duration
+
+        if self.speech_seen:
+            self.buffer.extend(audio)
+
+        buffered_seconds = len(self.buffer) / (UPLINK_SAMPLE_RATE * UPLINK_BYTES_PER_SAMPLE)
+        if not self.speech_seen or buffered_seconds < MIN_TURN_SECONDS:
+            return None
+        if (
+            self.trailing_silence_seconds < END_SILENCE_SECONDS
+            and buffered_seconds < MAX_TURN_SECONDS
+        ):
+            return None
+
+        segment = bytes(self.buffer)
+        self.reset()
+        return segment
+
+    def reset(self) -> None:
+        self.buffer.clear()
+        self.speech_seen = False
+        self.trailing_silence_seconds = 0.0
+
+
+def _pcm16_rms(audio: bytes) -> float:
+    if len(audio) < 2:
+        return 0.0
+    sample_count = len(audio) // 2
+    total = 0
+    for index in range(sample_count):
+        sample = int.from_bytes(
+            audio[index * 2 : index * 2 + 2],
+            byteorder="little",
+            signed=True,
+        )
+        total += sample * sample
+    return math.sqrt(total / sample_count) / 32768
 
 
 async def _authenticate(websocket: WebSocket) -> User:

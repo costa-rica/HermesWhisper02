@@ -192,6 +192,16 @@ EMAIL_DEV_CONSOLE_ONLY=true
 WS_QUERY_TOKEN_FALLBACK_ENABLED=false
 ```
 
+For avatar08 voice testing with real providers, use:
+
+```dotenv
+STT_PROVIDER=openai
+TTS_PROVIDER=openai
+HERMES_MOCK=false
+```
+
+Keep `OPENAI_API_KEY` set to the OpenAI key and `HERMES_API_KEY` set to the local Hermes gateway key.
+
 ## References
 
 - [API plan](../docs/20260510_PLAN_API_V01.md)

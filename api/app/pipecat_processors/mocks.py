@@ -5,7 +5,7 @@ from pipecat.frames.frames import TextFrame, TranscriptionFrame, TTSAudioRawFram
 
 
 class MockSTT:
-    def transcribe(self, _audio: bytes) -> TranscriptionFrame:
+    async def transcribe(self, _audio: bytes, sample_rate: int = 16_000) -> TranscriptionFrame:
         return TranscriptionFrame(
             text="hello world from the mock pipeline",
             user_id="local-test-user",
