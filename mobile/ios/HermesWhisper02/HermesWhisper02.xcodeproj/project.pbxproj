@@ -33,6 +33,7 @@
 		CB53FEB55DF7D230D183BD77 /* VerifyCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F3ABA93821FD4572861EF6 /* VerifyCodeView.swift */; };
 		D0102423B424DDC707DC5A17 /* ServerRegistryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */; };
 		D4C07A8BF3A90F1280ACED29 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AA9BA27F6B39A4A2D54AEA /* AudioCapture.swift */; };
+		E85F269BAC2D2532EB397380 /* AuthServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */; };
 		EB22E52A6DB78A2A9BC921EA /* VoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29E39A6F985798169851C0C /* VoiceController.swift */; };
 		EDEC09D2D771D86DFDF94FD8 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27C828EDF163E8B174A27745 /* LoginView.swift */; };
 /* End PBXBuildFile section */
@@ -84,6 +85,7 @@
 		D35AC43133650C131A10D849 /* ServerRegistryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryStore.swift; sourceTree = "<group>"; };
 		E051598A268D980BE03316D8 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		E101AC29B3A0A7D2CD852C6F /* VoiceSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSocket.swift; sourceTree = "<group>"; };
+		E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceTests.swift; sourceTree = "<group>"; };
 		E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnId.swift; sourceTree = "<group>"; };
 		EC846F6BECE04324F6BB84BC /* SanityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanityTests.swift; sourceTree = "<group>"; };
 		F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActor.swift; sourceTree = "<group>"; };
@@ -170,6 +172,7 @@
 		AB5FC726EE57DC95A71E2E4B /* HermesWhisper02Tests */ = {
 			isa = PBXGroup;
 			children = (
+				E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */,
 				CF90B9E419D6A0B4A2012971 /* KeychainStoreTests.swift */,
 				EC846F6BECE04324F6BB84BC /* SanityTests.swift */,
 				7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */,
@@ -311,6 +314,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E85F269BAC2D2532EB397380 /* AuthServiceTests.swift in Sources */,
 				44D2F8368D27EBDC5836DBFF /* KeychainStoreTests.swift in Sources */,
 				2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */,
 				BE365532AE47D02F8AD12F21 /* ServerRegistryStoreTests.swift in Sources */,

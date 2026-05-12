@@ -44,8 +44,9 @@ uv run uvicorn app.main:app --host 127.0.0.1 --port 8765
    - Run on an iOS 17 or newer simulator.
 
 3. Current app behavior.
-   - The phase 0 scaffold launches to `Hello, HermesWhisper02`.
-   - Server registry, auth UI, audio capture, WebSocket, playback, and reconnect behavior are planned in later mobile phases.
+   - The app opens to the login flow when no valid Keychain token exists.
+   - Successful email-code verification persists the bearer token and lands on the placeholder voice view.
+   - Server registry UI, audio capture, WebSocket, playback, and reconnect behavior are planned in later mobile phases.
 
 ## Testing
 

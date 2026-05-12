@@ -6,8 +6,27 @@ struct HermesWhisper02App: App {
 
     var body: some Scene {
         WindowGroup {
-            VoiceView()
+            RootView()
                 .environment(environment)
+        }
+    }
+}
+
+private struct RootView: View {
+    @Environment(AppEnvironment.self) private var appEnvironment
+
+    var body: some View {
+        Group {
+            if appEnvironment.isAuthenticated {
+                VoiceView()
+            } else {
+                NavigationStack {
+                    LoginView()
+                }
+            }
+        }
+        .onAppear {
+            appEnvironment.refreshCredentials()
         }
     }
 }

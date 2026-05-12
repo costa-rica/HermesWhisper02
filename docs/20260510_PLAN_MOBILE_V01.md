@@ -149,12 +149,12 @@ Commit: `feat: add keychain credential store (PLAN_MOBILE phase 2)`.
 
 Tasks:
 
-- [ ] `AuthService.swift`: `init(profile: ServerProfile, keychain: KeychainStore)`. Methods: `login(email:password:) async throws`, `verify(email:code:) async throws -> Credentials`, `currentCredentials() -> Credentials?`, `logout()`.
-- [ ] HTTP via `URLSession`. Decode `ErrorEnvelope` on non-2xx and throw a typed error.
-- [ ] `LoginView.swift`: email + password, "Send code" button → calls `login`, navigates to `VerifyCodeView`.
-- [ ] `VerifyCodeView.swift`: 6-digit code field; calls `verify`; on success, save credentials to Keychain and pop to main.
-- [ ] `AppEnvironment.swift`: `@Observable` model holding `activeProfile`, `credentials`, `isAuthenticated`. Wire `LoginView` → `VerifyCodeView` → `VoiceView` (placeholder for now).
-- [ ] Tests: `AuthService` against a stubbed `URLProtocol` mock — happy path, bad credentials, expired code.
+- [x] `AuthService.swift`: `init(profile: ServerProfile, keychain: KeychainStore)`. Methods: `login(email:password:) async throws`, `verify(email:code:) async throws -> Credentials`, `currentCredentials() -> Credentials?`, `logout()`.
+- [x] HTTP via `URLSession`. Decode `ErrorEnvelope` on non-2xx and throw a typed error.
+- [x] `LoginView.swift`: email + password, "Send code" button → calls `login`, navigates to `VerifyCodeView`.
+- [x] `VerifyCodeView.swift`: 6-digit code field; calls `verify`; on success, save credentials to Keychain and pop to main.
+- [x] `AppEnvironment.swift`: `@Observable` model holding `activeProfile`, `credentials`, `isAuthenticated`. Wire `LoginView` → `VerifyCodeView` → `VoiceView` (placeholder for now).
+- [x] Tests: `AuthService` against a stubbed `URLProtocol` mock — happy path, bad credentials, expired code.
 
 Acceptance:
 
