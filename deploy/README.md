@@ -63,6 +63,7 @@ PATH_TO_LOGS=/var/log/hermes-whisper-02
 DB_PATH=/var/lib/hermes-whisper-02/voice_store.sqlite
 PUBLIC_BASE_URL=https://api.hermes-whisper.dashanddata.com
 HERMES_BASE_URL=http://127.0.0.1:8642
+HERMES_CHAT_PATH=/chat
 HERMES_MOCK=false
 EMAIL_DEV_CONSOLE_ONLY=false
 WS_QUERY_TOKEN_FALLBACK_ENABLED=false

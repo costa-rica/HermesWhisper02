@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     TTS_VOICE: str = "alloy"
 
     HERMES_BASE_URL: str = "http://127.0.0.1:8642"
+    HERMES_CHAT_PATH: str = "/chat"
     HERMES_MOCK: bool = True
 
     DB_PATH: Path = Path("./var/voice_store.sqlite")

@@ -27,6 +27,7 @@ async def stream_hermes_text(query: str, conversation_id: str) -> AsyncIterator[
             query=query,
             conversation_id=conversation_id,
             base_url=settings.HERMES_BASE_URL,
+            chat_path=settings.HERMES_CHAT_PATH,
             client=client,
         ):
             yield chunk
@@ -37,9 +38,11 @@ async def _stream_live_hermes_text(
     query: str,
     conversation_id: str,
     base_url: str,
+    chat_path: str,
     client: httpx.AsyncClient,
 ) -> AsyncIterator[str]:
-    url = f"{base_url.rstrip('/')}/chat"
+    normalized_path = chat_path if chat_path.startswith("/") else f"/{chat_path}"
+    url = f"{base_url.rstrip('/')}{normalized_path}"
     logger.info("hermes_live_request_starting url={} conversation_id={}", url, conversation_id)
     async with client.stream(
         "POST",
@@ -52,6 +55,14 @@ async def _stream_live_hermes_text(
             response.status_code,
             response.headers.get("content-type", ""),
         )
+        if response.is_error:
+            body = (await response.aread()).decode(errors="replace")[:500]
+            logger.error(
+                "hermes_live_response_error url={} status={} body={}",
+                url,
+                response.status_code,
+                body,
+            )
         response.raise_for_status()
         content_type = response.headers.get("content-type", "")
         if "application/json" in content_type:
