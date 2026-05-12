@@ -9,7 +9,6 @@ from pydantic import ValidationError
 from app.config import Settings, get_settings
 from app.db import Database
 from app.errors import install_error_handlers
-from app.routes import health, mobile_auth, server_info, voice_ws
 
 
 @asynccontextmanager
@@ -27,6 +26,11 @@ def create_app() -> FastAPI:
     from app.logging_config import configure_logging
 
     configure_logging(settings)
+    try:
+        from app.routes import health, mobile_auth, server_info, voice_ws
+    except Exception:
+        logger.opt(exception=True).critical("Fatal startup import error")
+        raise
 
     app = FastAPI(
         title="HermesWhisper02 API",
