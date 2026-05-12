@@ -22,6 +22,7 @@ final class VoiceController: VoiceDisconnecting {
     var latestTranscript = ""
     var sessionID: String?
     var errorMessage: String?
+    var statusMessage = ""
 
     init(
         keychain: KeychainStore = KeychainStore(),
@@ -40,6 +41,7 @@ final class VoiceController: VoiceDisconnecting {
 
         isConnecting = true
         errorMessage = nil
+        statusMessage = ""
         let socket = VoiceSocket(
             profile: profile,
             keychain: keychain,
@@ -151,7 +153,13 @@ final class VoiceController: VoiceDisconnecting {
     private func handle(_ frame: ServerFrame) async {
         switch frame {
         case .sessionStarted(let started):
+            let previousSessionID = sessionID
             sessionID = started.sessionID
+            if previousSessionID != nil && !started.resumed {
+                statusMessage = "Reconnected; previous turn lost."
+            } else if started.resumed {
+                statusMessage = ""
+            }
             AppLog.voice.info(
                 """
                 voice_session_started session_id=\(started.sessionID, privacy: .public) \

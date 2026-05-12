@@ -67,6 +67,77 @@ final class VoiceSocketIntegrationTests: XCTestCase {
 
         socket.close()
     }
+
+    func testReconnectSendsPreviousSessionID() async throws {
+        let server = try TestWebSocketServer()
+        try await server.start()
+        defer {
+            server.stop()
+        }
+
+        let profile = ServerProfile(
+            id: UUID(),
+            displayName: "local",
+            baseURL: try XCTUnwrap(server.baseURL),
+            notes: nil,
+            authKind: .bearer2FA
+        )
+        let keychain = KeychainStore(keychain: VoiceSocketTestKeychainAccess())
+        try keychain.save(
+            profileID: profile.id,
+            credentials: Credentials(
+                token: "token",
+                expiresAt: Date(timeIntervalSinceNow: 600),
+                email: "nrodrig1@gmail.com"
+            )
+        )
+        let socket = VoiceSocket(profile: profile, keychain: keychain)
+
+        try await socket.connect()
+        let firstHello = try await server.nextMessage()
+        guard case .text(let firstHelloPayload) = firstHello else {
+            return XCTFail("Expected first client hello text frame")
+        }
+        XCTAssertTrue(firstHelloPayload.contains("\"type\":\"client_hello\""))
+        XCTAssertFalse(firstHelloPayload.contains("\"session_id\""))
+
+        try await server.sendText(
+            """
+            {"type":"session_started","session_id":"server-session","conversation_id":"conversation","downlink_format":"pcm16","sample_rate":24000,"front_llm":"openai:gpt-4o-mini","resumed":false}
+            """
+        )
+        _ = try await socket.events.nextEvent()
+
+        server.cancelConnection()
+
+        let secondHello = try await server.nextMessage()
+        guard case .text(let secondHelloPayload) = secondHello else {
+            return XCTFail("Expected reconnect client hello text frame")
+        }
+        XCTAssertTrue(secondHelloPayload.contains("\"type\":\"client_hello\""))
+        XCTAssertTrue(secondHelloPayload.contains("\"session_id\":\"server-session\""))
+
+        try await server.sendText(
+            """
+            {"type":"session_started","session_id":"server-session","conversation_id":"conversation","downlink_format":"pcm16","sample_rate":24000,"front_llm":"openai:gpt-4o-mini","resumed":true}
+            """
+        )
+
+        let event = try await socket.events.nextEvent()
+        XCTAssertEqual(
+            event,
+            .json(.sessionStarted(SessionStartedFrame(
+                sessionID: "server-session",
+                conversationID: "conversation",
+                downlinkFormat: .pcm16,
+                sampleRate: 24_000,
+                frontLLM: "openai:gpt-4o-mini",
+                resumed: true
+            )))
+        )
+
+        socket.close()
+    }
 }
 
 private enum TestWebSocketMessage: Equatable {
@@ -124,6 +195,13 @@ private final class TestWebSocketServer: @unchecked Sendable {
     func stop() {
         connection?.cancel()
         listener.cancel()
+    }
+
+    func cancelConnection() {
+        queue.async {
+            self.connection?.cancel()
+            self.connection = nil
+        }
     }
 
     func nextMessage() async throws -> TestWebSocketMessage {

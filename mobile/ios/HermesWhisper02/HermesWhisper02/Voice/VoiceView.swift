@@ -33,6 +33,12 @@ struct VoiceView: View {
                 Text(voiceController.assistantState.rawValue)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if !voiceController.statusMessage.isEmpty {
+                    Text(voiceController.statusMessage)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
                 if !voiceController.latestTranscript.isEmpty {
                     Text(voiceController.latestTranscript)
                         .font(.body)

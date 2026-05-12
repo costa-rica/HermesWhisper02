@@ -32,6 +32,11 @@ final class VoiceSocket {
 
     private static let heartbeatIntervalNanoseconds: UInt64 = 15_000_000_000
     private static let heartbeatTimeoutNanoseconds: UInt64 = 5_000_000_000
+    private static let reconnectDelaysNanoseconds: [UInt64] = [
+        200_000_000,
+        500_000_000,
+        1_000_000_000
+    ]
 
     private let profile: ServerProfile
     private let keychain: KeychainStore
@@ -45,6 +50,9 @@ final class VoiceSocket {
     private var processor = VoiceSocketMessageProcessor()
     private var pendingPingTimestamp: Double?
     private var sendQueueDepth = 0
+    private var currentSessionID: String?
+    private var isReconnecting = false
+    private var didCloseIntentionally = false
 
     private let eventStream: AsyncStream<VoiceEvent>
     private let eventContinuation: AsyncStream<VoiceEvent>.Continuation
@@ -78,6 +86,14 @@ final class VoiceSocket {
     }
 
     func connect() async throws {
+        didCloseIntentionally = false
+        try await openWebSocket(sessionID: priorSessionID)
+        receiveTask = Task { [weak self] in
+            await self?.receiveLoop()
+        }
+    }
+
+    private func openWebSocket(sessionID: String?) async throws {
         let credentials = try keychain.loadValid(profileID: profile.id)
         guard let token = credentials?.token else {
             throw SocketError.missingValidCredentials
@@ -90,14 +106,14 @@ final class VoiceSocket {
         webSocketTask = task
         task.resume()
 
-        receiveTask = Task { [weak self] in
-            await self?.receiveLoop()
-        }
+        processor.reset()
+        pendingPingTimestamp = nil
+        heartbeatTask?.cancel()
         heartbeatTask = Task { [weak self] in
             await self?.heartbeatLoop()
         }
 
-        try await sendJSON(.clientHello(ClientHelloFrame(sessionID: priorSessionID, pttMode: pttMode)))
+        try await sendJSON(.clientHello(ClientHelloFrame(sessionID: sessionID, pttMode: pttMode)))
     }
 
     func sendJSON(_ frame: ClientFrame) async throws {
@@ -109,6 +125,7 @@ final class VoiceSocket {
     }
 
     func sendBinary(_ data: Data) async throws {
+        try await waitUntilConnected()
         guard let webSocketTask else {
             throw SocketError.disconnected
         }
@@ -125,6 +142,7 @@ final class VoiceSocket {
     }
 
     func close() {
+        didCloseIntentionally = true
         receiveTask?.cancel()
         receiveTask = nil
         heartbeatTask?.cancel()
@@ -163,6 +181,13 @@ final class VoiceSocket {
                 try handle(message)
             }
         } catch {
+            if didCloseIntentionally || Task.isCancelled {
+                return
+            }
+            if await reconnectAfterFailure(error) {
+                await receiveLoop()
+                return
+            }
             AppLog.voice.error("voice_socket_receive_failed error=\(error.localizedDescription, privacy: .public)")
             eventContinuation.yield(.closed(error))
             eventContinuation.finish()
@@ -173,6 +198,9 @@ final class VoiceSocket {
         switch message {
         case .string(let text):
             let frame = try ProtocolEnvelope.decodeServerFrame(from: text)
+            if case .sessionStarted(let started) = frame {
+                currentSessionID = started.sessionID
+            }
             if case .pong(let pong) = frame {
                 handlePong(pong)
             }
@@ -209,9 +237,11 @@ final class VoiceSocket {
                     throw SocketError.heartbeatTimedOut
                 }
             } catch {
+                if didCloseIntentionally {
+                    return
+                }
                 AppLog.voice.error("voice_socket_heartbeat_failed error=\(error.localizedDescription, privacy: .public)")
-                eventContinuation.yield(.closed(error))
-                close()
+                webSocketTask?.cancel(with: .goingAway, reason: nil)
                 return
             }
         }
@@ -223,11 +253,71 @@ final class VoiceSocket {
         }
         pendingPingTimestamp = nil
     }
+
+    private func reconnectAfterFailure(_ error: Error) async -> Bool {
+        guard !didCloseIntentionally else {
+            return false
+        }
+
+        isReconnecting = true
+        defer {
+            isReconnecting = false
+        }
+
+        webSocketTask?.cancel(with: .goingAway, reason: nil)
+        webSocketTask = nil
+        heartbeatTask?.cancel()
+        heartbeatTask = nil
+
+        for (attemptIndex, delay) in Self.reconnectDelaysNanoseconds.enumerated() {
+            if didCloseIntentionally || Task.isCancelled {
+                return false
+            }
+
+            try? await Task.sleep(nanoseconds: delay)
+            do {
+                try await openWebSocket(sessionID: currentSessionID)
+                AppLog.voice.info(
+                    """
+                    voice_socket_reconnected attempt=\(attemptIndex + 1, privacy: .public) \
+                    session_id=\(self.currentSessionID ?? "none", privacy: .public)
+                    """
+                )
+                return true
+            } catch {
+                AppLog.voice.error(
+                    """
+                    voice_socket_reconnect_failed attempt=\(attemptIndex + 1, privacy: .public) \
+                    error=\(error.localizedDescription, privacy: .public)
+                    """
+                )
+            }
+        }
+
+        AppLog.voice.error("voice_socket_reconnect_exhausted error=\(error.localizedDescription, privacy: .public)")
+        return false
+    }
+
+    private func waitUntilConnected() async throws {
+        var attempts = 0
+        while isReconnecting && attempts < 20 {
+            try await Task.sleep(nanoseconds: 100_000_000)
+            attempts += 1
+        }
+        if isReconnecting || webSocketTask == nil {
+            throw SocketError.disconnected
+        }
+    }
 }
 
 struct VoiceSocketMessageProcessor {
     private var pendingPrelude: AudioChunkPrelude?
     private var nextSequenceBySource: [AudioSource: Int] = [:]
+
+    mutating func reset() {
+        pendingPrelude = nil
+        nextSequenceBySource = [:]
+    }
 
     mutating func handle(_ frame: ServerFrame) throws -> VoiceSocket.VoiceEvent? {
         if case .audioChunk(let prelude) = frame {
