@@ -193,19 +193,19 @@ Commit: `feat: add server registry ui (PLAN_MOBILE phase 4)`.
 
 Tasks:
 
-- [ ] `AudioCapture.swift`:
+- [x] `AudioCapture.swift`:
   - `AVAudioEngine` input tap at the device's native rate (commonly 44.1 / 48 kHz, Float32).
   - Resample to 16 kHz mono using `AVAudioConverter`.
   - Convert to `Int16` little-endian.
   - Emit `Data` chunks of 320 samples (20 ms) via `AsyncStream<Data>`.
   - Configure `AVAudioSession` with category `.playAndRecord`, mode `.voiceChat`, options `[.defaultToSpeaker, .allowBluetooth]`. AGC/echo are handled by the iOS voice processing IO.
-- [ ] Handle interruptions (phone call) and route changes (headphone unplug) by pausing/resuming the stream.
-- [ ] Tests (`AudioCaptureFormatTests.swift`): feed a known-frequency Float32 buffer through the resampler+converter, assert 16 kHz Int16 output of the expected sample count.
+- [x] Handle interruptions (phone call) and route changes (headphone unplug) by pausing/resuming the stream.
+- [x] Tests (`AudioCaptureFormatTests.swift`): feed a known-frequency Float32 buffer through the resampler+converter, assert 16 kHz Int16 output of the expected sample count.
 
 Acceptance:
 
-- A debug screen can show the rolling RMS of captured frames, proving live capture works.
-- Frame size is exactly 640 bytes (320 samples × 2 bytes) per chunk.
+- [x] A debug screen can show the rolling RMS of captured frames, proving live capture works.
+- [x] Frame size is exactly 640 bytes (320 samples × 2 bytes) per chunk.
 
 Commit: `feat: add audio capture pipeline (PLAN_MOBILE phase 5)`.
 

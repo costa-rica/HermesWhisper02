@@ -13,6 +13,7 @@
 		11AC4374D7DE91DD87693CA7 /* BargeInDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F3F5F56721B1289B49A806 /* BargeInDetector.swift */; };
 		1E789ADE30C2867D68B564DD /* HermesWhisper02App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA78936E88717E1D0C0A5A9 /* HermesWhisper02App.swift */; };
 		2424ECB7134FEFE4EFDCDB43 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539E712CF055D8C17357B2E6 /* KeychainStore.swift */; };
+		278B28BAB6E7EAF2F913C8F8 /* AudioCaptureFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0102E514ECCCAA8950B1510 /* AudioCaptureFormatTests.swift */; };
 		2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC846F6BECE04324F6BB84BC /* SanityTests.swift */; };
 		3C6C991800927A7E31960A3A /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E051598A268D980BE03316D8 /* AudioPlayer.swift */; };
 		4305B7620109D5A8C611F671 /* VoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E3F69F021639A82B399EC4 /* VoiceView.swift */; };
@@ -80,6 +81,7 @@
 		87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolEnvelope.swift; sourceTree = "<group>"; };
 		99F3ABA93821FD4572861EF6 /* VerifyCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyCodeView.swift; sourceTree = "<group>"; };
 		9A05E5D4F16C7C0C2F8B762B /* ServerInfoProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerInfoProbeTests.swift; sourceTree = "<group>"; };
+		A0102E514ECCCAA8950B1510 /* AudioCaptureFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureFormatTests.swift; sourceTree = "<group>"; };
 		B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantState.swift; sourceTree = "<group>"; };
 		BA62808A5A2F301000D69B55 /* ErrorEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorEnvelope.swift; sourceTree = "<group>"; };
 		BAC1C64D916F91B56A3969B8 /* ServerProfileEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProfileEditView.swift; sourceTree = "<group>"; };
@@ -179,6 +181,7 @@
 			isa = PBXGroup;
 			children = (
 				47E419C4BBC09A017A86A8F6 /* AppEnvironmentTests.swift */,
+				A0102E514ECCCAA8950B1510 /* AudioCaptureFormatTests.swift */,
 				E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */,
 				CF90B9E419D6A0B4A2012971 /* KeychainStoreTests.swift */,
 				EC846F6BECE04324F6BB84BC /* SanityTests.swift */,
@@ -336,6 +339,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				85AFB60F433567AADC73F492 /* AppEnvironmentTests.swift in Sources */,
+				278B28BAB6E7EAF2F913C8F8 /* AudioCaptureFormatTests.swift in Sources */,
 				E85F269BAC2D2532EB397380 /* AuthServiceTests.swift in Sources */,
 				44D2F8368D27EBDC5836DBFF /* KeychainStoreTests.swift in Sources */,
 				2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */,
