@@ -126,6 +126,26 @@ final class VoiceSocket {
 
     func sendBinary(_ data: Data) async throws {
         try await waitUntilConnected()
+        do {
+            try await sendBinaryOnce(data)
+        } catch {
+            if didCloseIntentionally {
+                throw error
+            }
+            if isReconnecting {
+                try await waitUntilConnected()
+                try await retryBinaryAfterReconnect(data)
+                return
+            }
+            if await reconnectAfterFailure(error) {
+                try await retryBinaryAfterReconnect(data)
+                return
+            }
+            throw error
+        }
+    }
+
+    private func sendBinaryOnce(_ data: Data) async throws {
         guard let webSocketTask else {
             throw SocketError.disconnected
         }
@@ -139,6 +159,19 @@ final class VoiceSocket {
         }
 
         try await webSocketTask.send(.data(data))
+    }
+
+    private func retryBinaryAfterReconnect(_ data: Data) async throws {
+        do {
+            try await sendBinaryOnce(data)
+        } catch {
+            if didCloseIntentionally || webSocketTask == nil {
+                throw error
+            }
+            AppLog.voice.warning(
+                "voice_socket_binary_retry_dropped bytes=\(data.count, privacy: .public) error=\(error.localizedDescription, privacy: .public)"
+            )
+        }
     }
 
     func close() {
@@ -258,6 +291,9 @@ final class VoiceSocket {
         guard !didCloseIntentionally else {
             return false
         }
+        if isReconnecting {
+            return await waitForReconnectCompletion()
+        }
 
         isReconnecting = true
         defer {
@@ -296,6 +332,15 @@ final class VoiceSocket {
 
         AppLog.voice.error("voice_socket_reconnect_exhausted error=\(error.localizedDescription, privacy: .public)")
         return false
+    }
+
+    private func waitForReconnectCompletion() async -> Bool {
+        var attempts = 0
+        while isReconnecting && attempts < 100 {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            attempts += 1
+        }
+        return !isReconnecting && webSocketTask != nil
     }
 
     private func waitUntilConnected() async throws {
