@@ -4,10 +4,12 @@ from uuid import uuid4
 
 from loguru import logger
 
+from app.config import Settings, get_settings
 from app.models import VoiceMessage
 from app.pipecat_processors.ack_processor import DeterministicAckProcessor
-from app.pipecat_processors.mocks import MockSTT, MockTTS
+from app.pipecat_processors.mocks import MockSTT
 from app.services.front_llm import FrontAnswerProcessor
+from app.services.tts import PipelineTTS, create_pipeline_tts
 
 
 @dataclass(frozen=True)
@@ -31,11 +33,14 @@ class MockVoicePipeline:
         self,
         conversation_id: str | None = None,
         context_messages: list[VoiceMessage] | None = None,
+        settings: Settings | None = None,
+        tts: PipelineTTS | None = None,
     ) -> None:
+        settings = settings or get_settings()
         self.stt = MockSTT()
         self.ack = DeterministicAckProcessor()
         self.front_llm = FrontAnswerProcessor(conversation_id=conversation_id or str(uuid4()))
-        self.tts = MockTTS()
+        self.tts = tts or create_pipeline_tts(settings)
         self.context_messages = context_messages or []
 
     async def process_audio(self, audio: bytes) -> PipelineTurn:
@@ -59,7 +64,7 @@ class MockVoicePipeline:
         chunks: list[PipelineAudioChunk] = []
         ack_text = self.ack.ack_for(transcript_frame)
         if ack_text is not None:
-            ack_audio = self.tts.synthesize(ack_text, turn_id)
+            ack_audio = await self.tts.synthesize(ack_text, turn_id)
             chunks.append(
                 PipelineAudioChunk(
                     turn_id=turn_id,
@@ -74,7 +79,7 @@ class MockVoicePipeline:
         llm_done = perf_counter()
         logger.info("turn_id={} stt_to_llm_ms={:.2f}", turn_id, (llm_done - stt_done) * 1000)
 
-        answer_audio = self.tts.synthesize(answer_text, turn_id)
+        answer_audio = await self.tts.synthesize(answer_text, turn_id)
         tts_done = perf_counter()
         logger.info("turn_id={} llm_to_tts_ms={:.2f}", turn_id, (tts_done - llm_start) * 1000)
         chunks.append(
@@ -96,5 +101,12 @@ class MockVoicePipeline:
 def build_pipeline(
     conversation_id: str | None = None,
     context_messages: list[VoiceMessage] | None = None,
+    settings: Settings | None = None,
+    tts: PipelineTTS | None = None,
 ) -> MockVoicePipeline:
-    return MockVoicePipeline(conversation_id=conversation_id, context_messages=context_messages)
+    return MockVoicePipeline(
+        conversation_id=conversation_id,
+        context_messages=context_messages,
+        settings=settings,
+        tts=tts,
+    )

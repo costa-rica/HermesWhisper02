@@ -22,7 +22,7 @@ class MockFrontLLM:
 
 
 class MockTTS:
-    def synthesize(self, frame: TextFrame, turn_id: str) -> TTSAudioRawFrame:
+    async def synthesize(self, frame: TextFrame, turn_id: str) -> TTSAudioRawFrame:
         sample_rate = 24_000
         duration_seconds = 0.6
         samples = int(sample_rate * duration_seconds)
