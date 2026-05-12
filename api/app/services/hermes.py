@@ -1,5 +1,7 @@
 import asyncio
+import json
 from collections.abc import AsyncIterator
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -20,18 +22,74 @@ async def stream_hermes_text(query: str, conversation_id: str) -> AsyncIterator[
             yield chunk
         return
 
-    async with (
-        httpx.AsyncClient(timeout=30) as client,
-        client.stream(
-            "POST",
-            f"{settings.HERMES_BASE_URL.rstrip('/')}/chat",
-            json={"query": query, "conversation_id": conversation_id},
-        ) as response,
-    ):
+    async with httpx.AsyncClient(timeout=30) as client:
+        async for chunk in _stream_live_hermes_text(
+            query=query,
+            conversation_id=conversation_id,
+            base_url=settings.HERMES_BASE_URL,
+            client=client,
+        ):
+            yield chunk
+
+
+async def _stream_live_hermes_text(
+    *,
+    query: str,
+    conversation_id: str,
+    base_url: str,
+    client: httpx.AsyncClient,
+) -> AsyncIterator[str]:
+    async with client.stream(
+        "POST",
+        f"{base_url.rstrip('/')}/chat",
+        json={"query": query, "conversation_id": conversation_id},
+    ) as response:
         response.raise_for_status()
-        async for text in response.aiter_text():
+        content_type = response.headers.get("content-type", "")
+        if "application/json" in content_type:
+            payload = json.loads((await response.aread()).decode())
+            text = _extract_hermes_text(payload)
             if text:
                 yield text
+            return
+
+        async for line in response.aiter_lines():
+            text = _parse_hermes_stream_line(line)
+            if text:
+                yield text
+
+
+def _parse_hermes_stream_line(line: str) -> str | None:
+    stripped = line.strip()
+    if not stripped:
+        return None
+    if stripped.startswith(":"):
+        return None
+    if stripped.startswith("data:"):
+        stripped = stripped.removeprefix("data:").strip()
+    if stripped == "[DONE]":
+        return None
+
+    try:
+        payload = json.loads(stripped)
+    except json.JSONDecodeError:
+        return stripped
+    return _extract_hermes_text(payload)
+
+
+def _extract_hermes_text(payload: Any) -> str | None:
+    if isinstance(payload, str):
+        return payload
+    if isinstance(payload, list):
+        return "".join(text for item in payload if (text := _extract_hermes_text(item)))
+    if not isinstance(payload, dict):
+        return None
+
+    for key in ("delta", "text", "content", "answer", "response", "message"):
+        text = _extract_hermes_text(payload.get(key))
+        if text:
+            return text
+    return None
 
 
 async def collect_hermes_text(query: str, conversation_id: str) -> str:
