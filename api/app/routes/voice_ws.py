@@ -133,6 +133,10 @@ async def _voice_loop(
                 segment = segmenter.add(input_frame.audio)
                 if segment is not None:
                     turn = await mock_pipeline.process_audio(segment, UPLINK_SAMPLE_RATE)
+                    if not turn.transcript.strip():
+                        logger.info("voice_turn_skipped_empty_transcript session_id={}", session_id)
+                        await store.touch_session(session_id)
+                        continue
                     active_turn_id = turn.turn_id
                     try:
                         await store.start_turn(session_id, turn.turn_id)

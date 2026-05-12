@@ -61,6 +61,11 @@ class MockVoicePipeline:
         vad_done = vad_done or perf_counter()
         stt_done = perf_counter()
         logger.info("turn_id={} vad_to_stt_ms={:.2f}", turn_id, (stt_done - vad_done) * 1000)
+        transcript_text = transcript_frame.text.strip()
+        if not transcript_text:
+            logger.info("turn_id={} empty_transcript_skipped", turn_id)
+            return PipelineTurn(turn_id=turn_id, transcript="", answer_text="", chunks=[])
+        transcript_frame.text = transcript_text
 
         chunks: list[PipelineAudioChunk] = []
         ack_text = self.ack.ack_for(transcript_frame)
