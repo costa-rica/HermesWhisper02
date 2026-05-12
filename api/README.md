@@ -172,6 +172,9 @@ TTS_MODEL=tts-1
 TTS_VOICE=alloy
 
 HERMES_BASE_URL=http://127.0.0.1:8642
+HERMES_CHAT_PATH=/v1/chat/completions
+HERMES_MODEL=hermes-agent
+HERMES_API_KEY=
 HERMES_MOCK=true
 
 DB_PATH=./var/voice_store.sqlite

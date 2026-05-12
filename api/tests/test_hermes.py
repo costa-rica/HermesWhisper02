@@ -5,11 +5,24 @@ from app.services.hermes import _stream_live_hermes_text
 
 async def test_live_hermes_stream_accepts_sse_json_text() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/chat"
+        assert request.url.path == "/v1/chat/completions"
+        assert request.headers["authorization"] == "Bearer test-key"
+        payload = json_from_request(request)
+        assert payload == {
+            "model": "hermes-agent",
+            "messages": [{"role": "user", "content": "hello"}],
+            "stream": True,
+        }
         return httpx.Response(
             200,
             headers={"content-type": "text/event-stream"},
-            text='data: {"text": "Hello"}\n\ndata: {"content": " Hermes"}\n\ndata: [DONE]\n\n',
+            text=(
+                'data: {"choices":[{"delta":{"role":"assistant"},"finish_reason":null}]}\n\n'
+                'data: {"choices":[{"delta":{"content":"Hello"},"finish_reason":null}]}\n\n'
+                'data: {"choices":[{"delta":{"content":" Hermes"},"finish_reason":null}]}\n\n'
+                'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n'
+                "data: [DONE]\n\n"
+            ),
         )
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
@@ -19,7 +32,9 @@ async def test_live_hermes_stream_accepts_sse_json_text() -> None:
                 query="hello",
                 conversation_id="conversation-1",
                 base_url="http://hermes.test",
-                chat_path="/chat",
+                chat_path="/v1/chat/completions",
+                model="hermes-agent",
+                api_key="test-key",
                 client=client,
             )
         ]
@@ -32,7 +47,7 @@ async def test_live_hermes_stream_accepts_json_answer() -> None:
         return httpx.Response(
             200,
             headers={"content-type": "application/json"},
-            json={"answer": "Hermes answered."},
+            json={"choices": [{"message": {"role": "assistant", "content": "Hermes answered."}}]},
         )
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
@@ -43,6 +58,8 @@ async def test_live_hermes_stream_accepts_json_answer() -> None:
                 conversation_id="conversation-1",
                 base_url="http://hermes.test",
                 chat_path="/chat",
+                model="hermes-agent",
+                api_key=None,
                 client=client,
             )
         ]
@@ -67,8 +84,16 @@ async def test_live_hermes_stream_uses_configured_path() -> None:
                 conversation_id="conversation-1",
                 base_url="http://hermes.test/",
                 chat_path="api/chat",
+                model="hermes-agent",
+                api_key=None,
                 client=client,
             )
         ]
 
     assert chunks == ["custom path"]
+
+
+def json_from_request(request: httpx.Request) -> dict:
+    import json
+
+    return json.loads(request.content.decode())

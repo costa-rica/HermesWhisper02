@@ -28,6 +28,10 @@ async def stream_hermes_text(query: str, conversation_id: str) -> AsyncIterator[
             conversation_id=conversation_id,
             base_url=settings.HERMES_BASE_URL,
             chat_path=settings.HERMES_CHAT_PATH,
+            model=settings.HERMES_MODEL,
+            api_key=(
+                settings.HERMES_API_KEY.get_secret_value() if settings.HERMES_API_KEY else None
+            ),
             client=client,
         ):
             yield chunk
@@ -39,15 +43,23 @@ async def _stream_live_hermes_text(
     conversation_id: str,
     base_url: str,
     chat_path: str,
+    model: str,
+    api_key: str | None,
     client: httpx.AsyncClient,
 ) -> AsyncIterator[str]:
     normalized_path = chat_path if chat_path.startswith("/") else f"/{chat_path}"
     url = f"{base_url.rstrip('/')}{normalized_path}"
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
     logger.info("hermes_live_request_starting url={} conversation_id={}", url, conversation_id)
     async with client.stream(
         "POST",
         url,
-        json={"query": query, "conversation_id": conversation_id},
+        headers=headers,
+        json={
+            "model": model,
+            "messages": [{"role": "user", "content": query}],
+            "stream": True,
+        },
     ) as response:
         logger.info(
             "hermes_live_response_started url={} status={} content_type={}",
@@ -103,6 +115,10 @@ def _extract_hermes_text(payload: Any) -> str | None:
         return "".join(text for item in payload if (text := _extract_hermes_text(item)))
     if not isinstance(payload, dict):
         return None
+
+    choices = payload.get("choices")
+    if isinstance(choices, list):
+        return "".join(text for item in choices if (text := _extract_hermes_text(item)))
 
     for key in ("delta", "text", "content", "answer", "response", "message"):
         text = _extract_hermes_text(payload.get(key))
