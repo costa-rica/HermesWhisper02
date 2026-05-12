@@ -332,8 +332,8 @@ Commit: `feat: add reconnect with session resume (PLAN_MOBILE phase 9)`.
 
 Tasks:
 
-- [ ] Author `/mobile/AGENTS.md` per D-1.
-- [ ] Author `mobile/README.md`: simulator quickstart, physical-device cabling, signing notes.
+- [x] Author `/mobile/AGENTS.md` per D-1.
+- [x] Author `mobile/README.md`: simulator quickstart, physical-device cabling, signing notes.
 - [ ] Confirm acceptance criteria (REQ §10) for the mobile side.
 - [ ] Tag `mobile/v0.1.0` in git.
 

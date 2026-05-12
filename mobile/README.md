@@ -81,10 +81,9 @@ xcodebuild build \
 xcodegen generate
 ```
 
-5. Local toolchain note.
-   - On this workstation, `xcodebuild test` previously failed before project compilation because Xcode’s WatchOS support plug-in was blocked by macOS system policy.
-   - `xcodebuild build` also failed before Swift compilation with an `ld -version_details` JSON parse error.
-   - Re-run the commands above after the Xcode toolchain is repaired or reinstalled.
+5. Current verification status.
+   - `xcodebuild test` passes on the iPhone 17 simulator.
+   - `xcodebuild build` passes for the generic iOS Simulator destination with `CODE_SIGNING_ALLOWED=NO`.
 
 ## Project Structure
 
