@@ -25,6 +25,7 @@
 		796F98BD66C3F99EF1293DFE /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F426E2172720DD8D9D2C32E /* Logger.swift */; };
 		7E61B54E3CD337759FA09EF5 /* ProtocolEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87F12FBE7D25918ED64CC43B /* ProtocolEnvelope.swift */; };
 		80AB87E77B9BC3AF308C4144 /* HermesWhisper02UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2566CEE1730110198F5643E8 /* HermesWhisper02UITests.swift */; };
+		899888B43545643BF22A2DD3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F592670BCBB2AE3EFEF30D62 /* Assets.xcassets */; };
 		8CC5741727A44337D4862F71 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE8C17852AD10DB8787D2029 /* AppEnvironment.swift */; };
 		B319005DB46CB24FF1F9E6BE /* ServerRegistryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35AC43133650C131A10D849 /* ServerRegistryStore.swift */; };
 		BE365532AE47D02F8AD12F21 /* ServerRegistryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */; };
@@ -89,6 +90,7 @@
 		E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnId.swift; sourceTree = "<group>"; };
 		EC846F6BECE04324F6BB84BC /* SanityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanityTests.swift; sourceTree = "<group>"; };
 		F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActor.swift; sourceTree = "<group>"; };
+		F592670BCBB2AE3EFEF30D62 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -200,6 +202,7 @@
 		D27F437E05736C50BF09A5AD /* HermesWhisper02 */ = {
 			isa = PBXGroup;
 			children = (
+				F592670BCBB2AE3EFEF30D62 /* Assets.xcassets */,
 				1555FDE85A09391BAF88F1EF /* Info.plist */,
 				54E32178AF66B601D4D68495 /* App */,
 				583E957E025CC51B949AF5F1 /* Auth */,
@@ -237,6 +240,7 @@
 			buildConfigurationList = 7991473A86EC95A25EE8F8E6 /* Build configuration list for PBXNativeTarget "HermesWhisper02" */;
 			buildPhases = (
 				A7E4C464341326BA02418FF4 /* Sources */,
+				1E2ACD21667D99FB42897104 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -308,6 +312,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1E2ACD21667D99FB42897104 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				899888B43545643BF22A2DD3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		20BB6E467B35E6AE9D44C62B /* Sources */ = {
