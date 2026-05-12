@@ -65,6 +65,19 @@ class Settings(BaseSettings):
             raise ValueError("NAME_APP must not be empty")
         return value
 
+    @field_validator(
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "HERMES_API_KEY",
+        "EMAIL_PASSWORD",
+        mode="before",
+    )
+    @classmethod
+    def _empty_secret_as_none(cls, value):
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
     @field_validator("PATH_TO_LOGS")
     @classmethod
     def _logs_required_outside_dev(cls, value: Path | None, info) -> Path | None:

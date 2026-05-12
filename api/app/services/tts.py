@@ -53,17 +53,23 @@ def create_pipeline_tts(settings: Settings) -> PipelineTTS:
         return MockTTS()
 
     if settings.TTS_PROVIDER == "openai":
-        if settings.OPENAI_API_KEY is None:
-            raise APIError(
-                code="SERVICE_UNAVAILABLE", message="OPENAI_API_KEY is required", status=503
-            )
+        api_key = _required_openai_api_key(settings)
         return OpenAIHTTPPipelineTTS(
-            api_key=settings.OPENAI_API_KEY.get_secret_value(),
+            api_key=api_key,
             model=settings.TTS_MODEL,
             voice=settings.TTS_VOICE,
         )
 
     raise APIError(code="VALIDATION_ERROR", message="Unsupported TTS provider", status=400)
+
+
+def _required_openai_api_key(settings: Settings) -> str:
+    if settings.OPENAI_API_KEY is None:
+        raise APIError(code="SERVICE_UNAVAILABLE", message="OPENAI_API_KEY is required", status=503)
+    api_key = settings.OPENAI_API_KEY.get_secret_value().strip()
+    if not api_key:
+        raise APIError(code="SERVICE_UNAVAILABLE", message="OPENAI_API_KEY is required", status=503)
+    return api_key
 
 
 def create_tts_service(settings: Settings):
@@ -73,12 +79,9 @@ def create_tts_service(settings: Settings):
         return MockTTS()
 
     if settings.TTS_PROVIDER == "openai":
-        if settings.OPENAI_API_KEY is None:
-            raise APIError(
-                code="SERVICE_UNAVAILABLE", message="OPENAI_API_KEY is required", status=503
-            )
+        api_key = _required_openai_api_key(settings)
         return OpenAITTSService(
-            api_key=settings.OPENAI_API_KEY.get_secret_value(),
+            api_key=api_key,
             settings=OpenAITTSService.Settings(
                 voice=settings.TTS_VOICE,
                 model=settings.TTS_MODEL,
