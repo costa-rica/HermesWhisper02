@@ -12,3 +12,9 @@
 
 3. Notes
    - These phase 5 numbers are provider smoke proxies, not final NFR-1 ack-path measurements. The runtime STT factory is wired for Pipecat `OpenAIRealtimeSTTService`; the smoke test uses the transcription endpoint because it is deterministic and easy to assert in CI-like local runs.
+
+4. API phase 8 decision
+   - Status: skipped on 2026-05-12.
+   - Test path: physical iPhone to the public avatar08 deployment through `https://api.hermes-whisper.dashanddata.com`, with the mock pipeline active.
+   - Observed server logs showed mock pipeline stage timings around 65 to 68 ms while the mobile client received ack and answer audio frames continuously.
+   - No NFR-1 miss or audible ack serialization issue was observed during the public-server voice tests, so the optional `ParallelPipeline` refactor is not justified for v1.
