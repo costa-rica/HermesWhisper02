@@ -217,11 +217,11 @@ Commit: `feat: add audio capture pipeline (PLAN_MOBILE phase 5)`.
 
 Tasks:
 
-- [ ] Build & run on a physical iPhone (iOS 17+).
-- [ ] Verify mic capture: 16 kHz mono PCM16, 640-byte frames, RMS responds to speaking.
+- [x] Build & run on a physical iPhone (iOS 17+).
+- [x] Verify mic capture: 16 kHz mono PCM16, 640-byte frames, RMS responds to speaking.
 - [ ] Verify playback of a bundled fixture PCM16 chunk through `PlaybackActor` (introduced in Phase 7) or a temporary direct path.
 - [ ] Verify route changes: unplug headphones mid-playback, accept a phone-call interruption (`AVAudioSession.interruptionNotification`), reconnect Bluetooth — the audio session recovers and the UI lands in an explicit recoverable state.
-- [ ] Capture screenshots / a short device log into `mobile/docs/device_bringup_5_5.md` for the record.
+- [x] Capture screenshots / a short device log into `mobile/docs/device_bringup_5_5.md` for the record.
 
 Acceptance:
 
