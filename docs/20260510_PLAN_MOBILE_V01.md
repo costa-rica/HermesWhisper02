@@ -262,18 +262,18 @@ Commit: `feat: add voice websocket client (PLAN_MOBILE phase 6)`.
 
 Tasks:
 
-- [ ] `PlaybackActor.swift` (Codex Mobile §8): a Swift `actor` owning **all** mutations of `AVAudioEngine` / `AVAudioPlayerNode`. Methods: `enqueue(format:, sampleRate:, pcm16:)`, `flushAndStop()`, `handleRouteChange(...)`, `handleInterruption(...)`. No callers may touch the player node directly. Internally maintain a small ring buffer (target 60 ms) to absorb network jitter.
-- [ ] `AudioPlayer.swift`: thin public surface that forwards to `PlaybackActor`. Existing call sites use this; only `PlaybackActor` knows about `AVAudioPlayerNode`.
-- [ ] `BargeInDetector.swift`: interrupt-only energy detector per FR-2.4(a).
+- [x] `PlaybackActor.swift` (Codex Mobile §8): a Swift `actor` owning **all** mutations of `AVAudioEngine` / `AVAudioPlayerNode`. Methods: `enqueue(format:, sampleRate:, pcm16:)`, `flushAndStop()`, `handleRouteChange(...)`, `handleInterruption(...)`. No callers may touch the player node directly. Internally maintain a small ring buffer (target 60 ms) to absorb network jitter.
+- [x] `AudioPlayer.swift`: thin public surface that forwards to `PlaybackActor`. Existing call sites use this; only `PlaybackActor` knows about `AVAudioPlayerNode`.
+- [x] `BargeInDetector.swift`: interrupt-only energy detector per FR-2.4(a).
   - Active **only** while `PlaybackActor` reports it is currently playing assistant audio.
   - Computes RMS over a 50 ms window of incoming mic frames; if RMS exceeds a tuned threshold for ≥ 2 consecutive windows, fire `onLikelySpeech`.
   - Does **not** define utterance boundaries, does **not** signal `end_of_utterance`, does **not** modify uplink. Mic frames continue to be sent to the server unchanged.
   - Threshold and window tunables in code (`BargeInDetector.Config`); revisit on the device after Phase 5.5.
-- [ ] In `VoiceController`:
+- [x] In `VoiceController`:
   - On `BargeInDetector.onLikelySpeech` → immediately `await playbackActor.flushAndStop()`. **Target ≤ 150 ms** end-to-end (mic-frame-arrival → playback-silenced).
   - On server `user_started_speaking` → also call `flushAndStop()` (idempotent backup path; covers cases where the local detector misses).
   - On `turn_end {canceled: true}` → clear per-turn state.
-- [ ] Tests:
+- [x] Tests:
   - Feed a known-loud Float32 buffer to `BargeInDetector` while it is "active"; assert it fires within 100 ms of synthetic onset.
   - Feed the same buffer while it is "inactive" (no playback); assert it does NOT fire.
   - Concurrency test: rapid `enqueue`/`flushAndStop` interleavings on `PlaybackActor` never schedule a buffer after a flush.

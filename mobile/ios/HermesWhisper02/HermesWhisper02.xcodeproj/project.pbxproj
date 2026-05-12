@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05B758DD5D5F5E0D7B122975 /* BargeInDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE329D41BDDE157B24F13D1 /* BargeInDetectorTests.swift */; };
 		05DB174BB1523620A10A578D /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54EA15C53822763A9D3A635F /* AuthService.swift */; };
 		098D501DC752960708DDC9E9 /* ServerProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B669DFC2D6B14B7A353AFD7 /* ServerProfile.swift */; };
+		0B1BC95C4B632071449191EF /* PlaybackActorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6371838C549AE14D73F063C1 /* PlaybackActorTests.swift */; };
 		0B2CD180C801192BF15E4706 /* VoiceSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = E101AC29B3A0A7D2CD852C6F /* VoiceSocket.swift */; };
 		11AC4374D7DE91DD87693CA7 /* BargeInDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F3F5F56721B1289B49A806 /* BargeInDetector.swift */; };
 		1E789ADE30C2867D68B564DD /* HermesWhisper02App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA78936E88717E1D0C0A5A9 /* HermesWhisper02App.swift */; };
@@ -79,6 +81,8 @@
 		5B669DFC2D6B14B7A353AFD7 /* ServerProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProfile.swift; sourceTree = "<group>"; };
 		62E3F69F021639A82B399EC4 /* VoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceView.swift; sourceTree = "<group>"; };
 		637076EA76E11925D0E009F1 /* HermesWhisper02.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HermesWhisper02.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6371838C549AE14D73F063C1 /* PlaybackActorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActorTests.swift; sourceTree = "<group>"; };
+		7AE329D41BDDE157B24F13D1 /* BargeInDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BargeInDetectorTests.swift; sourceTree = "<group>"; };
 		7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryStoreTests.swift; sourceTree = "<group>"; };
 		7FBB1A5129F97B4C712B7080 /* HermesWhisper02UITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HermesWhisper02UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerRegistryView.swift; sourceTree = "<group>"; };
@@ -189,7 +193,9 @@
 				47E419C4BBC09A017A86A8F6 /* AppEnvironmentTests.swift */,
 				A0102E514ECCCAA8950B1510 /* AudioCaptureFormatTests.swift */,
 				E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */,
+				7AE329D41BDDE157B24F13D1 /* BargeInDetectorTests.swift */,
 				CF90B9E419D6A0B4A2012971 /* KeychainStoreTests.swift */,
+				6371838C549AE14D73F063C1 /* PlaybackActorTests.swift */,
 				9EA6097E53D13298D904DE0E /* ProtocolEnvelopeTests.swift */,
 				EC846F6BECE04324F6BB84BC /* SanityTests.swift */,
 				9A05E5D4F16C7C0C2F8B762B /* ServerInfoProbeTests.swift */,
@@ -350,7 +356,9 @@
 				85AFB60F433567AADC73F492 /* AppEnvironmentTests.swift in Sources */,
 				278B28BAB6E7EAF2F913C8F8 /* AudioCaptureFormatTests.swift in Sources */,
 				E85F269BAC2D2532EB397380 /* AuthServiceTests.swift in Sources */,
+				05B758DD5D5F5E0D7B122975 /* BargeInDetectorTests.swift in Sources */,
 				44D2F8368D27EBDC5836DBFF /* KeychainStoreTests.swift in Sources */,
+				0B1BC95C4B632071449191EF /* PlaybackActorTests.swift in Sources */,
 				3FAAF54D2938023C920CCE52 /* ProtocolEnvelopeTests.swift in Sources */,
 				2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */,
 				C467CAE5C90C3187CA29D7D9 /* ServerInfoProbeTests.swift in Sources */,

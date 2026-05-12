@@ -9,6 +9,8 @@ final class VoiceController: VoiceDisconnecting {
 
     private let keychain: KeychainStore
     private let audioCapture: AudioCapture
+    private let audioPlayer: AudioPlayer
+    private var bargeInDetector = BargeInDetector()
     private var socket: VoiceSocket?
     private var audioTask: Task<Void, Never>?
     private var eventTask: Task<Void, Never>?
@@ -23,10 +25,12 @@ final class VoiceController: VoiceDisconnecting {
 
     init(
         keychain: KeychainStore = KeychainStore(),
-        audioCapture: AudioCapture = AudioCapture()
+        audioCapture: AudioCapture = AudioCapture(),
+        audioPlayer: AudioPlayer = AudioPlayer()
     ) {
         self.keychain = keychain
         self.audioCapture = audioCapture
+        self.audioPlayer = audioPlayer
     }
 
     func start(profile: ServerProfile, pttMode: Bool = false) async throws {
@@ -54,9 +58,23 @@ final class VoiceController: VoiceDisconnecting {
             audioTask = Task { [weak self] in
                 for await frame in frames {
                     let rms = AudioCapture.rms(forPCM16Frame: frame)
-                    await MainActor.run {
-                        self?.microphoneRMS = rms
+                    let playbackActive = await self?.audioPlayer.isPlaying() ?? false
+                    let shouldFlushPlayback = await MainActor.run {
+                        guard let self else {
+                            return false
+                        }
+                        var shouldFlush = false
+                        self.microphoneRMS = rms
+                        self.bargeInDetector.process(frame: frame, playbackActive: playbackActive) {
+                            shouldFlush = true
+                        }
+                        return shouldFlush
                     }
+                    if shouldFlushPlayback {
+                        AppLog.voice.info("voice_barge_in_detected action=flush_playback")
+                        await self?.audioPlayer.flushAndStop()
+                    }
+
                     do {
                         try await socket.sendBinary(frame)
                     } catch {
@@ -70,9 +88,7 @@ final class VoiceController: VoiceDisconnecting {
 
             eventTask = Task { [weak self] in
                 for await event in socket.events {
-                    await MainActor.run {
-                        self?.handle(event)
-                    }
+                    await self?.handle(event)
                 }
             }
         } catch {
@@ -91,6 +107,10 @@ final class VoiceController: VoiceDisconnecting {
         eventTask?.cancel()
         eventTask = nil
         audioCapture.stop()
+        Task {
+            await audioPlayer.flushAndStop()
+        }
+        bargeInDetector.reset()
         socket?.close()
         socket = nil
         isRunning = false
@@ -99,17 +119,26 @@ final class VoiceController: VoiceDisconnecting {
         assistantState = .idle
     }
 
-    private func handle(_ event: VoiceSocket.VoiceEvent) {
+    private func handle(_ event: VoiceSocket.VoiceEvent) async {
         switch event {
         case .json(let frame):
-            handle(frame)
+            await handle(frame)
         case .binaryAudio(let prelude, let data):
-            AppLog.voice.info(
-                """
-                voice_controller_playback_deferred turn_id=\(prelude.turnID, privacy: .public) \
-                source=\(prelude.source.rawValue, privacy: .public) bytes=\(data.count, privacy: .public)
-                """
-            )
+            do {
+                try await audioPlayer.enqueue(
+                    format: prelude.format,
+                    sampleRate: prelude.sampleRate,
+                    pcm16: data
+                )
+                AppLog.voice.info(
+                    """
+                    voice_controller_playback_enqueued turn_id=\(prelude.turnID, privacy: .public) \
+                    source=\(prelude.source.rawValue, privacy: .public) bytes=\(data.count, privacy: .public)
+                    """
+                )
+            } catch {
+                handleFailure(error)
+            }
         case .closed(let error):
             if let error {
                 handleFailure(error)
@@ -119,7 +148,7 @@ final class VoiceController: VoiceDisconnecting {
         }
     }
 
-    private func handle(_ frame: ServerFrame) {
+    private func handle(_ frame: ServerFrame) async {
         switch frame {
         case .sessionStarted(let started):
             sessionID = started.sessionID
@@ -133,9 +162,13 @@ final class VoiceController: VoiceDisconnecting {
             latestTranscript = transcript.text
         case .assistantState(let state):
             assistantState = state.state
+        case .userStartedSpeaking:
+            AppLog.voice.info("voice_server_user_started_speaking action=flush_playback")
+            await audioPlayer.flushAndStop()
         case .turnEnd(let turnEnd):
             if turnEnd.canceled == true {
                 assistantState = .idle
+                await audioPlayer.flushAndStop()
             }
         case .error(let envelope):
             errorMessage = envelope.error.message
