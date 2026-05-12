@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from loguru import logger
 from pipecat.frames.frames import TextFrame, TranscriptionFrame
 from pipecat.services.openai.llm import OpenAILLMService
 
@@ -39,6 +40,21 @@ class FrontAnswerProcessor:
             text_frame = TextFrame("Hi. I am here.")
         else:
             self.hermes_calls += 1
-            text_frame = TextFrame(await collect_hermes_text(transcript.text, self.conversation_id))
+            try:
+                answer_text = await collect_hermes_text(transcript.text, self.conversation_id)
+            except Exception as exc:
+                logger.exception(
+                    "call_hermes_failed conversation_id={} error_type={} error={}",
+                    self.conversation_id,
+                    type(exc).__name__,
+                    exc,
+                )
+                answer_text = "I could not reach Hermes right now."
+            if not answer_text.strip():
+                logger.warning(
+                    "call_hermes_empty_response conversation_id={}", self.conversation_id
+                )
+                answer_text = "Hermes returned an empty response."
+            text_frame = TextFrame(answer_text)
         text_frame.metadata = {"source": "answer"}
         return text_frame

@@ -2,6 +2,7 @@ import json
 from typing import Any
 
 from fastapi import APIRouter, WebSocket
+from loguru import logger
 from starlette.websockets import WebSocketDisconnect
 
 from app.config import get_settings
@@ -59,6 +60,21 @@ async def voice_ws(websocket: WebSocket) -> None:
         await websocket.close(code=1008)
     except WebSocketDisconnect:
         return
+    except Exception as exc:
+        logger.exception("voice_ws_failed error_type={} error={}", type(exc).__name__, exc)
+        try:
+            await websocket.send_json(
+                _error_payload(
+                    APIError(
+                        code="SERVICE_UNAVAILABLE",
+                        message="Voice service failed while processing audio",
+                        status=503,
+                    )
+                )
+            )
+            await websocket.close(code=1011)
+        except Exception:
+            logger.exception("voice_ws_error_close_failed")
 
 
 async def _voice_loop(

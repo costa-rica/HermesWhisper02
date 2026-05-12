@@ -32,3 +32,22 @@ async def test_front_answer_processor_calls_hermes_mock() -> None:
 
     assert "Hermes mock response" in answer.text
     assert answer.metadata == {"source": "answer"}
+
+
+async def test_front_answer_processor_degrades_when_hermes_fails(monkeypatch) -> None:
+    async def fail_collect_hermes_text(query: str, conversation_id: str) -> str:
+        raise RuntimeError("Hermes unavailable")
+
+    monkeypatch.setattr(
+        "app.services.front_llm.collect_hermes_text",
+        fail_collect_hermes_text,
+    )
+    processor = FrontAnswerProcessor(conversation_id="conversation-1")
+    pipeline = build_pipeline()
+    transcript = pipeline.stt.transcribe(b"")
+    transcript.text = "what changed today"
+
+    answer = await processor.answer(transcript)
+
+    assert answer.text == "I could not reach Hermes right now."
+    assert answer.metadata == {"source": "answer"}

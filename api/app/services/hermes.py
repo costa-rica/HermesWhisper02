@@ -39,11 +39,19 @@ async def _stream_live_hermes_text(
     base_url: str,
     client: httpx.AsyncClient,
 ) -> AsyncIterator[str]:
+    url = f"{base_url.rstrip('/')}/chat"
+    logger.info("hermes_live_request_starting url={} conversation_id={}", url, conversation_id)
     async with client.stream(
         "POST",
-        f"{base_url.rstrip('/')}/chat",
+        url,
         json={"query": query, "conversation_id": conversation_id},
     ) as response:
+        logger.info(
+            "hermes_live_response_started url={} status={} content_type={}",
+            url,
+            response.status_code,
+            response.headers.get("content-type", ""),
+        )
         response.raise_for_status()
         content_type = response.headers.get("content-type", "")
         if "application/json" in content_type:
