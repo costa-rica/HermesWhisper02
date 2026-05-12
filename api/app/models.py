@@ -31,6 +31,17 @@ class VoiceMessage(BaseModel):
     created_at: str
 
 
+class TurnState(BaseModel):
+    turn_id: str
+    session_id: str
+    source: Literal["ack", "answer"]
+    status: Literal["started", "completed", "canceled", "failed"]
+    ts_started: str
+    ts_first_audio: str | None = None
+    ts_final: str | None = None
+    ts_canceled: str | None = None
+
+
 class TokenClaims(BaseModel):
     model_config = ConfigDict(extra="ignore")
 

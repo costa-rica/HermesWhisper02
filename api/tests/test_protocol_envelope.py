@@ -120,6 +120,98 @@ def test_voice_ws_ping_is_control_only(tmp_path, monkeypatch) -> None:
     assert transcript["type"] == "transcript"
 
 
+def test_voice_ws_resumes_same_owner_session(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "test.sqlite"))
+    monkeypatch.setenv("NAME_APP", "hermes-whisper-02-api-test")
+    monkeypatch.setenv("RUN_ENVIRONMENT", "development")
+    monkeypatch.setenv("JWT_SECRET", "test-secret-with-at-least-32-bytes")
+    monkeypatch.setenv("SESSION_RESUME_WINDOW_SEC", "300")
+    get_settings.cache_clear()
+    user_id = _seed_user_sync("nrodrig1@gmail.com", "password")
+    token = issue_token(
+        user_id,
+        "nrodrig1@gmail.com",
+        get_settings().JWT_SECRET.get_secret_value(),
+        60,
+    )
+
+    with TestClient(create_app()) as client:
+        with client.websocket_connect(
+            "/ws/voice",
+            headers={"Authorization": f"Bearer {token}"},
+        ) as websocket:
+            websocket.send_json(_client_hello())
+            first_started = websocket.receive_json()
+
+        with client.websocket_connect(
+            "/ws/voice",
+            headers={"Authorization": f"Bearer {token}"},
+        ) as websocket:
+            websocket.send_json(_client_hello(session_id=first_started["session_id"]))
+            second_started = websocket.receive_json()
+
+    assert first_started["type"] == "session_started"
+    assert first_started["resumed"] is False
+    assert second_started["type"] == "session_started"
+    assert second_started["session_id"] == first_started["session_id"]
+    assert second_started["resumed"] is True
+
+
+def test_voice_ws_rejects_foreign_owner_resume_with_fresh_session(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "test.sqlite"))
+    monkeypatch.setenv("NAME_APP", "hermes-whisper-02-api-test")
+    monkeypatch.setenv("RUN_ENVIRONMENT", "development")
+    monkeypatch.setenv("JWT_SECRET", "test-secret-with-at-least-32-bytes")
+    monkeypatch.setenv("SESSION_RESUME_WINDOW_SEC", "300")
+    get_settings.cache_clear()
+    first_user_id = _seed_user_sync("nrodrig1@gmail.com", "password")
+    second_user_id = _seed_user_sync("other@example.com", "password")
+    first_token = issue_token(
+        first_user_id,
+        "nrodrig1@gmail.com",
+        get_settings().JWT_SECRET.get_secret_value(),
+        60,
+    )
+    second_token = issue_token(
+        second_user_id,
+        "other@example.com",
+        get_settings().JWT_SECRET.get_secret_value(),
+        60,
+    )
+
+    with TestClient(create_app()) as client:
+        with client.websocket_connect(
+            "/ws/voice",
+            headers={"Authorization": f"Bearer {first_token}"},
+        ) as websocket:
+            websocket.send_json(_client_hello())
+            first_started = websocket.receive_json()
+
+        with client.websocket_connect(
+            "/ws/voice",
+            headers={"Authorization": f"Bearer {second_token}"},
+        ) as websocket:
+            websocket.send_json(_client_hello(session_id=first_started["session_id"]))
+            second_started = websocket.receive_json()
+
+    assert second_started["type"] == "session_started"
+    assert second_started["session_id"] != first_started["session_id"]
+    assert second_started["resumed"] is False
+
+
+def _client_hello(session_id: str | None = None) -> dict:
+    frame = {
+        "type": "client_hello",
+        "protocol_version": 1,
+        "downlink_format": "pcm16",
+        "sample_rate": 16_000,
+        "ptt_mode": False,
+    }
+    if session_id is not None:
+        frame["session_id"] = session_id
+    return frame
+
+
 def _seed_user_sync(email: str, password: str) -> str:
     import asyncio
 

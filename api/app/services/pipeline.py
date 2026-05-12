@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from loguru import logger
 
+from app.models import VoiceMessage
 from app.pipecat_processors.ack_processor import DeterministicAckProcessor
 from app.pipecat_processors.mocks import MockSTT, MockTTS
 from app.services.front_llm import FrontAnswerProcessor
@@ -21,15 +22,21 @@ class PipelineAudioChunk:
 class PipelineTurn:
     turn_id: str
     transcript: str
+    answer_text: str
     chunks: list[PipelineAudioChunk]
 
 
 class MockVoicePipeline:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        conversation_id: str | None = None,
+        context_messages: list[VoiceMessage] | None = None,
+    ) -> None:
         self.stt = MockSTT()
         self.ack = DeterministicAckProcessor()
-        self.front_llm = FrontAnswerProcessor(conversation_id=str(uuid4()))
+        self.front_llm = FrontAnswerProcessor(conversation_id=conversation_id or str(uuid4()))
         self.tts = MockTTS()
+        self.context_messages = context_messages or []
 
     async def process_audio(self, audio: bytes) -> PipelineTurn:
         vad_done = perf_counter()
@@ -78,8 +85,16 @@ class MockVoicePipeline:
                 audio=answer_audio.audio,
             )
         )
-        return PipelineTurn(turn_id=turn_id, transcript=transcript_frame.text, chunks=chunks)
+        return PipelineTurn(
+            turn_id=turn_id,
+            transcript=transcript_frame.text,
+            answer_text=answer_text.text,
+            chunks=chunks,
+        )
 
 
-def build_pipeline() -> MockVoicePipeline:
-    return MockVoicePipeline()
+def build_pipeline(
+    conversation_id: str | None = None,
+    context_messages: list[VoiceMessage] | None = None,
+) -> MockVoicePipeline:
+    return MockVoicePipeline(conversation_id=conversation_id, context_messages=context_messages)

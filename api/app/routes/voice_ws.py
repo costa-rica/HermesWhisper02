@@ -19,6 +19,7 @@ from app.services.voice_store import VoiceStore
 router = APIRouter(tags=["voice"])
 
 PROTOCOL_VERSION = 1
+UPLINK_TURN_BYTES = 16_000 * 2
 
 
 @router.websocket("/ws/voice")
@@ -27,8 +28,14 @@ async def voice_ws(websocket: WebSocket) -> None:
     try:
         user = await _authenticate(websocket)
         hello = await _receive_client_hello(websocket)
-        store = VoiceStore(Database(get_settings().DB_PATH))
-        session, resumed = await store.get_or_create_session(user.id, hello.get("session_id"))
+        settings = get_settings()
+        store = VoiceStore(Database(settings.DB_PATH))
+        session, resumed = await store.get_or_create_session(
+            user.id,
+            hello.get("session_id"),
+            settings.SESSION_RESUME_WINDOW_SEC,
+        )
+        context_messages = await store.list_messages(session.id)
         await websocket.send_json(
             {
                 "type": "session_started",
@@ -36,13 +43,17 @@ async def voice_ws(websocket: WebSocket) -> None:
                 "conversation_id": session.conversation_id,
                 "downlink_format": hello.get("downlink_format", "pcm16"),
                 "sample_rate": 24_000,
-                "front_llm": (
-                    f"{get_settings().FRONT_LLM_PROVIDER}:{get_settings().FRONT_LLM_MODEL}"
-                ),
+                "front_llm": (f"{settings.FRONT_LLM_PROVIDER}:{settings.FRONT_LLM_MODEL}"),
                 "resumed": resumed,
             }
         )
-        await _voice_loop(ProjectWebSocketTransportAdapter(websocket))
+        await _voice_loop(
+            ProjectWebSocketTransportAdapter(websocket),
+            store,
+            session.id,
+            session.conversation_id,
+            context_messages,
+        )
     except APIError as exc:
         await websocket.send_json(_error_payload(exc))
         await websocket.close(code=1008)
@@ -50,27 +61,41 @@ async def voice_ws(websocket: WebSocket) -> None:
         return
 
 
-async def _voice_loop(adapter: ProjectWebSocketTransportAdapter) -> None:
+async def _voice_loop(
+    adapter: ProjectWebSocketTransportAdapter,
+    store: VoiceStore,
+    session_id: str,
+    conversation_id: str,
+    context_messages,
+) -> None:
     pipeline = PassthroughEchoPipeline(adapter)
-    mock_pipeline = build_pipeline()
+    mock_pipeline = build_pipeline(conversation_id, context_messages)
+    active_turn_id: str | None = None
     while True:
         websocket = adapter.websocket
         message = await websocket.receive()
         if message["type"] == "websocket.disconnect":
+            if active_turn_id is not None:
+                await store.fail_turn(active_turn_id)
             return
         if "text" in message:
             frame = _parse_json(message["text"])
             frame_type = frame.get("type")
             if frame_type == "ping":
+                await store.touch_session(session_id)
                 await websocket.send_json({"type": "pong", "ts": frame.get("ts")})
             elif frame_type == "cancel_turn":
+                canceled_turn_id = frame.get("turn_id", active_turn_id or pipeline.turn_id)
+                if canceled_turn_id:
+                    await store.cancel_turn(canceled_turn_id)
                 await websocket.send_json(
                     {
                         "type": "turn_end",
-                        "turn_id": frame.get("turn_id", pipeline.turn_id),
+                        "turn_id": canceled_turn_id or pipeline.turn_id,
                         "canceled": True,
                     }
                 )
+                active_turn_id = None
                 pipeline = PassthroughEchoPipeline(adapter)
             elif frame_type == "client_bye":
                 await websocket.close(code=1000)
@@ -82,8 +107,14 @@ async def _voice_loop(adapter: ProjectWebSocketTransportAdapter) -> None:
             input_frame = await adapter.receive_input_frame(message)
             if input_frame is not None:
                 pipeline.buffered_audio_bytes += len(input_frame.audio)
-                if pipeline.buffered_audio_bytes >= 16_000 * 2:
+                if pipeline.buffered_audio_bytes >= UPLINK_TURN_BYTES:
                     turn = await mock_pipeline.process_audio(input_frame.audio)
+                    active_turn_id = turn.turn_id
+                    try:
+                        await store.start_turn(session_id, turn.turn_id)
+                    except ValueError:
+                        await _send_protocol_error(websocket, "Duplicate turn_id")
+                        return
                     await adapter.websocket.send_json(
                         {
                             "type": "transcript",
@@ -96,6 +127,7 @@ async def _voice_loop(adapter: ProjectWebSocketTransportAdapter) -> None:
                         await adapter.websocket.send_json(
                             {"type": "assistant_state", "state": chunk.source}
                         )
+                        await store.mark_first_audio(turn.turn_id, chunk.source)
                         await adapter.send_audio_chunk(
                             turn_id=chunk.turn_id,
                             source=chunk.source,  # type: ignore[arg-type]
@@ -103,6 +135,15 @@ async def _voice_loop(adapter: ProjectWebSocketTransportAdapter) -> None:
                             audio=chunk.audio,
                         )
                     await adapter.websocket.send_json({"type": "turn_end", "turn_id": turn.turn_id})
+                    await store.complete_turn(turn.turn_id)
+                    await store.append_completed_exchange(
+                        session_id,
+                        turn.turn_id,
+                        turn.transcript,
+                        turn.answer_text,
+                    )
+                    await store.touch_session(session_id)
+                    active_turn_id = None
                     await adapter.websocket.send_json({"type": "assistant_state", "state": "idle"})
                     pipeline = PassthroughEchoPipeline(adapter)
 
