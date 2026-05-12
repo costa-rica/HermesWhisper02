@@ -25,6 +25,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>HermesWhisper connects to a local development API while testing on your network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>HermesWhisper needs the microphone to capture your voice.</string>
 	<key>UIBackgroundModes</key>

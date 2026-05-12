@@ -26,6 +26,7 @@ targets:
         CFBundleDisplayName: HermesWhisper02
         UILaunchScreen: {}
         NSMicrophoneUsageDescription: HermesWhisper needs the microphone to capture your voice.
+        NSLocalNetworkUsageDescription: HermesWhisper connects to a local development API while testing on your network.
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         UIBackgroundModes:
