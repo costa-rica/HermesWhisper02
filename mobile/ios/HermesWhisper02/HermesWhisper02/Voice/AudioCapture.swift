@@ -15,6 +15,7 @@ final class AudioCapture {
     private var isRunning = false
     private var interruptionObserver: NSObjectProtocol?
     private var routeChangeObserver: NSObjectProtocol?
+    private var processedBufferCount = 0
 
     init(
         engine: AVAudioEngine = AVAudioEngine(),
@@ -103,7 +104,11 @@ final class AudioCapture {
             mode: .voiceChat,
             options: [.defaultToSpeaker, .allowBluetoothHFP]
         )
+        try session.setPreferredSampleRate(Self.targetSampleRate)
+        try session.setPreferredIOBufferDuration(0.02)
         try session.setActive(true)
+        try preferBuiltInMicWhenBluetoothIsInactive()
+        logCurrentRoute(event: "audio_capture_session_configured")
     }
 
     private func installInputTap() throws {
@@ -115,11 +120,18 @@ final class AudioCapture {
         }
 
         processor = nil
+        processedBufferCount = 0
 
         inputNode.removeTap(onBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1_024, format: inputFormat) { [weak self] buffer, _ in
             self?.process(buffer)
         }
+        AppLog.voice.info(
+            """
+            audio_capture_tap_installed sample_rate=\(inputFormat.sampleRate, privacy: .public) \
+            channels=\(inputFormat.channelCount, privacy: .public) interleaved=\(inputFormat.isInterleaved, privacy: .public)
+            """
+        )
     }
 
     private func observeAudioSession() {
@@ -210,6 +222,16 @@ final class AudioCapture {
 
     private func process(_ buffer: AVAudioPCMBuffer) {
         do {
+            processedBufferCount += 1
+            if processedBufferCount == 1 || processedBufferCount.isMultiple(of: 30) {
+                AppLog.voice.info(
+                    """
+                    audio_capture_input_buffer count=\(self.processedBufferCount, privacy: .public) \
+                    frames=\(buffer.frameLength, privacy: .public) sample_rate=\(buffer.format.sampleRate, privacy: .public) \
+                    channels=\(buffer.format.channelCount, privacy: .public) rms=\(Self.rms(forPCMBuffer: buffer), privacy: .public)
+                    """
+                )
+            }
             var processor = try processor(for: buffer.format)
             let chunks = try processor.append(buffer)
             self.processor = processor
@@ -220,6 +242,60 @@ final class AudioCapture {
             AppLog.voice.error("audio_capture_process_failed error=\(error.localizedDescription, privacy: .public)")
             stop()
         }
+    }
+
+    private func preferBuiltInMicWhenBluetoothIsInactive() throws {
+        let currentInputs = session.currentRoute.inputs
+        let hasBluetoothInput = currentInputs.contains { port in
+            port.portType == .bluetoothHFP
+        }
+
+        guard !hasBluetoothInput,
+              let builtInMic = session.availableInputs?.first(where: { $0.portType == .builtInMic }) else {
+            return
+        }
+
+        try session.setPreferredInput(builtInMic)
+    }
+
+    private func logCurrentRoute(event: String) {
+        AppLog.voice.info(
+            """
+            \(event, privacy: .public) inputs=\(Self.describe(self.session.currentRoute.inputs), privacy: .public) \
+            outputs=\(Self.describe(self.session.currentRoute.outputs), privacy: .public) preferred_input=\(self.session.preferredInput?.portName ?? "none", privacy: .public) \
+            sample_rate=\(self.session.sampleRate, privacy: .public) io_buffer=\(self.session.ioBufferDuration, privacy: .public)
+            """
+        )
+    }
+
+    private static func describe(_ ports: [AVAudioSessionPortDescription]) -> String {
+        ports.map { "\($0.portType.rawValue):\($0.portName)" }.joined(separator: ",")
+    }
+
+    private static func rms(forPCMBuffer buffer: AVAudioPCMBuffer) -> Double {
+        guard buffer.frameLength > 0,
+              let channelData = buffer.floatChannelData else {
+            return 0
+        }
+
+        var sumOfSquares = 0.0
+        var sampleCount = 0
+        let frameLength = Int(buffer.frameLength)
+        let channelCount = Int(buffer.format.channelCount)
+
+        for channelIndex in 0..<channelCount {
+            let samples = UnsafeBufferPointer(start: channelData[channelIndex], count: frameLength)
+            for sample in samples {
+                let value = Double(sample)
+                sumOfSquares += value * value
+                sampleCount += 1
+            }
+        }
+
+        guard sampleCount > 0 else {
+            return 0
+        }
+        return sqrt(sumOfSquares / Double(sampleCount))
     }
 
     private func processor(for format: AVAudioFormat) throws -> PCM16FrameProcessor {
