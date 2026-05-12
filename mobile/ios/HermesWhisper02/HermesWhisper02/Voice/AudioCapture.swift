@@ -194,9 +194,13 @@ final class AudioCapture {
             return
         }
 
+        AppLog.voice.info("audio_capture_route_change reason=\(String(describing: reason), privacy: .public)")
+
         switch reason {
-        case .newDeviceAvailable, .oldDeviceUnavailable, .categoryChange, .routeConfigurationChange:
+        case .newDeviceAvailable, .oldDeviceUnavailable, .routeConfigurationChange:
             restartForCurrentRoute()
+        case .categoryChange:
+            logCurrentRoute(event: "audio_capture_category_changed")
         default:
             break
         }
