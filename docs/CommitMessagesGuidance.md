@@ -17,6 +17,14 @@
   - adds a new route, component, workflow, or integration point
 - For broader commits, the title can stay concise, but the body should summarize the main change areas so a reader can understand scope without opening the diff.
 - Do not use the body as a file inventory. Summarize the logical changes in 2-5 bullets.
+- append co-authored-by line(s) at the end of the commit message
+  - format: `co-authored-by: <agent name> (<model>)`
+  - examples:
+    - `co-authored-by: claude (sonnet-4)`
+    - `co-authored-by: codex (gpt-5)`
+- never include emails or angle brackets (`< >`)
+- use lowercase only
+- if multiple agents contributed, add one line per agent (no bullets, just separate lines)
 
 ## Format
 
