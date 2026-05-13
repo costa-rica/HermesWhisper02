@@ -131,6 +131,20 @@ async def _voice_loop(
                 active_turn_id = None
                 pipeline = PassthroughEchoPipeline(adapter)
                 segmenter.reset()
+            elif frame_type == "set_intermediary_mode":
+                # The receive loop is busy while a turn is processed, so runtime changes
+                # are read and applied at the next turn boundary.
+                try:
+                    applied = runtime_config.apply_partial({"intermediary_mode": frame.get("mode")})
+                except ValueError as exc:
+                    await _send_protocol_error(websocket, str(exc))
+                    return
+                _log_runtime_config_change(session_id, applied)
+                await websocket.send_json(_runtime_config_applied_payload(applied))
+            elif frame_type == "set_audio_params":
+                applied = runtime_config.apply_partial(frame)
+                _log_runtime_config_change(session_id, applied)
+                await websocket.send_json(_runtime_config_applied_payload(applied))
             elif frame_type == "client_bye":
                 await websocket.close(code=1000)
                 return
@@ -310,6 +324,23 @@ def _runtime_config_from_hello(hello: dict[str, Any]) -> SessionRuntimeConfig:
     except ValueError as exc:
         raise APIError(code="VALIDATION_ERROR", message=str(exc), status=400) from exc
     return config
+
+
+def _runtime_config_applied_payload(applied: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "type": "runtime_config_applied",
+        "fields": list(applied.keys()),
+        "values": applied,
+    }
+
+
+def _log_runtime_config_change(session_id: str, applied: dict[str, Any]) -> None:
+    if applied:
+        logger.info(
+            "voice_runtime_config_changed session_id={} fields={}",
+            session_id,
+            list(applied.keys()),
+        )
 
 
 def _parse_json(payload: str) -> dict[str, Any]:

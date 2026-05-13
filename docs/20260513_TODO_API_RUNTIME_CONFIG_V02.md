@@ -116,18 +116,18 @@ Commit: `feat(api): per-session runtime config and routing modes (20260513_TODO_
 
 Tasks:
 
-- [ ] Extend client-message dispatch in voice_ws.py to handle:
+- [x] Extend client-message dispatch in voice_ws.py to handle:
   - `set_intermediary_mode` → updates `config.intermediary_mode`, emits `runtime_config_applied`.
   - `set_audio_params` → updates fields (clamped), emits `runtime_config_applied` with clamped values.
-- [ ] Document explicitly in code and in the operator notes that during an active turn the WS text channel is not being read; the frame is queued and applied on the next read. Effective behavior: changes land at the next turn boundary.
-- [ ] Log at INFO when a runtime parameter changes (Loguru, session_id + changed field names; no PII).
-- [ ] Tests in `tests/test_voice_ws_runtime.py`:
-  - [ ] Mid-conversation switch frame applied by next turn.
-  - [ ] Out-of-range clamping reflected in the ack values.
+- [x] Document explicitly in code and in the operator notes that during an active turn the WS text channel is not being read; the frame is queued and applied on the next read. Effective behavior: changes land at the next turn boundary.
+- [x] Log at INFO when a runtime parameter changes (Loguru, session_id + changed field names; no PII).
+- [x] Tests in `tests/test_voice_ws_runtime.py`:
+  - [x] Mid-conversation switch frame applied by next turn.
+  - [x] Out-of-range clamping reflected in the ack values.
 
 Checks before checking off:
 
-- [ ] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
+- [x] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
 
 Commit: `feat(api): live runtime config frames (20260513_TODO_API_RUNTIME_CONFIG_V02 phase 5)`.
 
@@ -214,6 +214,7 @@ Reused:
 
 ## Operator notes (placeholder — fill in after phase 5 and 7)
 
+- Runtime config frames are read between active turn processing steps. If a client sends `set_intermediary_mode` or `set_audio_params` while the API is processing a turn, the frame is queued by the WebSocket stack and applies on the next read, effectively the next turn boundary.
 - Sending `set_intermediary_mode` mid-conversation: example payload; applied at next turn boundary.
 - Sending `set_audio_params` mid-conversation: example payload; clamped echo behavior.
 - Triggering long-gap resume: reconnect after >5 minutes with prior `session_id`; expect `resumed: true`.
