@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-HermesWhisper02 is a Swift iOS and FastAPI monorepo for real-time voice access to the Hermes AI Agent. The API uses FastAPI, Pipecat, SQLite, Loguru, and OpenAI providers; the mobile app uses SwiftUI, AVFoundation, URLSession WebSockets, and Keychain-backed per-server auth.
+HermesWhisper02 is a Swift iOS and FastAPI monorepo for real-time voice access to the Hermes AI Agent (https://hermes-agent.nousresearch.com/). The API uses FastAPI, Pipecat, SQLite, Loguru, and OpenAI providers; the mobile app uses SwiftUI, AVFoundation, URLSession WebSockets, and Keychain-backed per-server auth.
 
 ## Setup
 
