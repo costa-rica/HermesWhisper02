@@ -53,6 +53,18 @@ final class VoiceController: VoiceDisconnecting {
     }
 
     func start(profile: ServerProfile, pttMode: Bool = false) async throws {
+        try await startSession(
+            profile: profile,
+            resumeSessionID: sessionID,
+            pttMode: pttMode
+        )
+    }
+
+    func startSession(
+        profile: ServerProfile,
+        resumeSessionID: String? = nil,
+        pttMode: Bool = false
+    ) async throws {
         guard !isRunning, !isConnecting else {
             throw ControllerError.alreadyRunning
         }
@@ -65,7 +77,7 @@ final class VoiceController: VoiceDisconnecting {
         let socket = VoiceSocket(
             profile: profile,
             keychain: keychain,
-            priorSessionID: sessionID,
+            priorSessionID: resumeSessionID,
             pttMode: pttMode
         )
 

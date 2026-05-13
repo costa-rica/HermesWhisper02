@@ -71,13 +71,13 @@ Commit: `feat(mobile): turn-aware persistence (20260513_TODO_MOBILE_UI_HISTORY_V
 
 Tasks:
 
-- [ ] Add `VoiceController.startSession(resumeSessionID: String?)` that threads the optional id into the WebSocket client.
-- [ ] Update `VoiceSocket` (or the `ClientHelloFrame` builder) to include `session_id` in `client_hello` when provided.
-- [ ] Tests: build a `client_hello` with a resume id; assert the JSON contains `session_id` and the right shape.
+- [x] Add `VoiceController.startSession(resumeSessionID: String?)` that threads the optional id into the WebSocket client.
+- [x] Update `VoiceSocket` (or the `ClientHelloFrame` builder) to include `session_id` in `client_hello` when provided.
+- [x] Tests: build a `client_hello` with a resume id; assert the JSON contains `session_id` and the right shape.
 
 Checks before checking off:
 
-- [ ] `xcodebuild test` passes.
+- [x] `xcodebuild test` passes.
 
 Commit: `feat(mobile): resume plumbing (20260513_TODO_MOBILE_UI_HISTORY_V02 phase 3)`.
 
