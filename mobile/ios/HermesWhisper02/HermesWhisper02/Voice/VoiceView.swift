@@ -45,6 +45,8 @@ struct VoiceView: View {
                         .multilineTextAlignment(.center)
                 }
             }
+            HermesActivityView(events: voiceController.hermesActivity)
+                .frame(maxWidth: 340)
             Picker("Mode", selection: $interactionMode) {
                 ForEach(VoiceInteractionMode.allCases) { mode in
                     Text(mode.label).tag(mode)
@@ -206,6 +208,65 @@ struct VoiceView: View {
         } catch {
             logoutError = error.localizedDescription
         }
+    }
+}
+
+private struct HermesActivityView: View {
+    let events: [HermesActivityEvent]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: events.isEmpty ? "hourglass" : "checklist")
+                Text(events.isEmpty ? "Hermes activity" : "Hermes working")
+                Spacer()
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            if events.isEmpty {
+                Text("No Hermes tool activity yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(events) { event in
+                                HermesActivityRow(event: event)
+                                    .id(event.id)
+                            }
+                        }
+                    }
+                    .frame(maxHeight: 120)
+                    .onChange(of: events.count) { _, _ in
+                        if let lastID = events.last?.id {
+                            proxy.scrollTo(lastID, anchor: .bottom)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(10)
+        .background(.thinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct HermesActivityRow: View {
+    let event: HermesActivityEvent
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: event.kind == .toolCall ? "wrench.and.screwdriver" : "checkmark.circle")
+                .frame(width: 18)
+            Text(event.text)
+                .font(.caption)
+                .lineLimit(3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .foregroundStyle(.primary)
     }
 }
 

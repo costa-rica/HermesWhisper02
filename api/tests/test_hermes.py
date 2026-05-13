@@ -1,6 +1,11 @@
 import httpx
 
-from app.services.hermes import _stream_live_hermes_text
+from app.services.hermes import (
+    ProgressEvent,
+    SpeakableDelta,
+    _stream_live_hermes_events,
+    _stream_live_hermes_text,
+)
 
 
 async def test_live_hermes_stream_accepts_sse_json_text() -> None:
@@ -40,6 +45,58 @@ async def test_live_hermes_stream_accepts_sse_json_text() -> None:
         ]
 
     assert chunks == ["Hello", " Hermes"]
+
+
+async def test_live_hermes_stream_surfaces_tool_progress() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            text=(
+                "event: response.output_item.added\n"
+                'data: {"type":"response.output_item.added",'
+                '"item":{"type":"function_call","name":"search_documents"}}\n\n'
+                "event: response.output_item.done\n"
+                'data: {"type":"response.output_item.done",'
+                '"item":{"type":"function_call_output","output":"Found 2 documents"}}\n\n'
+                'data: {"choices":[{"delta":{"content":"Done."}}]}\n\n'
+                "data: [DONE]\n\n"
+            ),
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        events = [
+            event
+            async for event in _stream_live_hermes_events(
+                query="find docs",
+                conversation_id="conversation-1",
+                base_url="http://hermes.test",
+                chat_path="/v1/chat/completions",
+                model="hermes-agent",
+                api_key=None,
+                client=client,
+            )
+        ]
+
+    assert events == [
+        ProgressEvent(
+            kind="tool_call",
+            text="search_documents",
+            raw={
+                "type": "response.output_item.added",
+                "item": {"type": "function_call", "name": "search_documents"},
+            },
+        ),
+        ProgressEvent(
+            kind="tool_result",
+            text="Found 2 documents",
+            raw={
+                "type": "response.output_item.done",
+                "item": {"type": "function_call_output", "output": "Found 2 documents"},
+            },
+        ),
+        SpeakableDelta("Done."),
+    ]
 
 
 async def test_live_hermes_stream_accepts_json_answer() -> None:

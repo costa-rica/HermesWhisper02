@@ -14,6 +14,7 @@ final class VoiceController: VoiceDisconnecting {
     private var socket: VoiceSocket?
     private var audioTask: Task<Void, Never>?
     private var eventTask: Task<Void, Never>?
+    private var activityTurnID: String?
 
     var isRunning = false
     var isConnecting = false
@@ -23,6 +24,7 @@ final class VoiceController: VoiceDisconnecting {
     var sessionID: String?
     var errorMessage: String?
     var statusMessage = ""
+    var hermesActivity: [HermesActivityEvent] = []
 
     init(
         keychain: KeychainStore = KeychainStore(),
@@ -42,6 +44,8 @@ final class VoiceController: VoiceDisconnecting {
         isConnecting = true
         errorMessage = nil
         statusMessage = ""
+        hermesActivity = []
+        activityTurnID = nil
         let socket = VoiceSocket(
             profile: profile,
             keychain: keychain,
@@ -119,6 +123,8 @@ final class VoiceController: VoiceDisconnecting {
         isConnecting = false
         microphoneRMS = 0
         assistantState = .idle
+        hermesActivity = []
+        activityTurnID = nil
     }
 
     private func handle(_ event: VoiceSocket.VoiceEvent) async {
@@ -168,8 +174,19 @@ final class VoiceController: VoiceDisconnecting {
             )
         case .transcript(let transcript):
             latestTranscript = transcript.text
+            if transcript.isFinal && activityTurnID != transcript.turnID {
+                activityTurnID = transcript.turnID
+                hermesActivity = []
+            }
         case .assistantState(let state):
             assistantState = state.state
+        case .hermesProgress(let progress):
+            if activityTurnID != progress.turnID {
+                activityTurnID = progress.turnID
+                hermesActivity = []
+            }
+            hermesActivity.append(HermesActivityEvent(frame: progress))
+            statusMessage = "Hermes is working."
         case .userStartedSpeaking:
             AppLog.voice.info("voice_server_user_started_speaking action=flush_playback")
             await audioPlayer.flushAndStop()
@@ -190,6 +207,21 @@ final class VoiceController: VoiceDisconnecting {
         errorMessage = error.localizedDescription
         AppLog.voice.error("voice_controller_failed error=\(error.localizedDescription, privacy: .public)")
         disconnect()
+    }
+}
+
+struct HermesActivityEvent: Identifiable, Equatable {
+    let id = UUID()
+    let turnID: String
+    let kind: HermesProgressKind
+    let text: String
+    let ts: Double
+
+    init(frame: HermesProgressFrame) {
+        turnID = frame.turnID
+        kind = frame.kind
+        text = frame.text
+        ts = frame.ts
     }
 }
 

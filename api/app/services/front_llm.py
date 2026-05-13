@@ -1,3 +1,4 @@
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
 from loguru import logger
@@ -7,7 +8,7 @@ from pipecat.services.openai.llm import OpenAILLMService
 from app.config import Settings
 from app.errors import APIError
 from app.pipecat_processors.ack_processor import is_trivial_transcript
-from app.services.hermes import collect_hermes_text
+from app.services.hermes import ProgressEvent, collect_hermes_text_with_progress
 
 SYSTEM_PROMPT = (
     "You are the answer voice of an AI agent. A separate processor handles short "
@@ -35,13 +36,27 @@ class FrontAnswerProcessor:
     conversation_id: str
     hermes_calls: int = 0
 
-    async def answer(self, transcript: TranscriptionFrame) -> TextFrame:
+    async def answer(
+        self,
+        transcript: TranscriptionFrame,
+        *,
+        turn_id: str | None = None,
+        progress_handler: Callable[[str, str, str], Awaitable[None]] | None = None,
+    ) -> TextFrame:
         if is_trivial_transcript(transcript.text):
             text_frame = TextFrame("Hi. I am here.")
         else:
             self.hermes_calls += 1
             try:
-                answer_text = await collect_hermes_text(transcript.text, self.conversation_id)
+                answer_text = await collect_hermes_text_with_progress(
+                    transcript.text,
+                    self.conversation_id,
+                    progress_handler=(
+                        _progress_forwarder(turn_id, progress_handler)
+                        if turn_id is not None and progress_handler is not None
+                        else None
+                    ),
+                )
             except Exception as exc:
                 logger.exception(
                     "call_hermes_failed conversation_id={} error_type={} error={}",
@@ -58,3 +73,13 @@ class FrontAnswerProcessor:
             text_frame = TextFrame(answer_text)
         text_frame.metadata = {"source": "answer"}
         return text_frame
+
+
+def _progress_forwarder(
+    turn_id: str,
+    progress_handler: Callable[[str, str, str], Awaitable[None]],
+) -> Callable[[ProgressEvent], Awaitable[None]]:
+    async def forward(event: ProgressEvent) -> None:
+        await progress_handler(turn_id, event.kind, event.text)
+
+    return forward

@@ -35,11 +35,13 @@ async def test_front_answer_processor_calls_hermes_mock() -> None:
 
 
 async def test_front_answer_processor_degrades_when_hermes_fails(monkeypatch) -> None:
-    async def fail_collect_hermes_text(query: str, conversation_id: str) -> str:
+    async def fail_collect_hermes_text(
+        query: str, conversation_id: str, progress_handler=None
+    ) -> str:
         raise RuntimeError("Hermes unavailable")
 
     monkeypatch.setattr(
-        "app.services.front_llm.collect_hermes_text",
+        "app.services.front_llm.collect_hermes_text_with_progress",
         fail_collect_hermes_text,
     )
     processor = FrontAnswerProcessor(conversation_id="conversation-1")

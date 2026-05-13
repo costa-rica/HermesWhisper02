@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from time import time
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -77,6 +78,17 @@ class ProjectWebSocketTransportAdapter:
 
     async def send_user_stopped_speaking(self, ts: float) -> None:
         await self.websocket.send_json({"type": "user_stopped_speaking", "ts": ts})
+
+    async def send_hermes_progress(self, turn_id: str, kind: str, text: str) -> None:
+        await self.websocket.send_json(
+            {
+                "type": "hermes_progress",
+                "turn_id": turn_id,
+                "kind": kind,
+                "text": text,
+                "ts": time(),
+            }
+        )
 
 
 class PassthroughEchoPipeline:

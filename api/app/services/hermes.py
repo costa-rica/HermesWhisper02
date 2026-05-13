@@ -1,6 +1,7 @@
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from dataclasses import dataclass
 from typing import Any
 
 import httpx
@@ -9,21 +10,52 @@ from loguru import logger
 from app.config import get_settings
 
 
+@dataclass(frozen=True)
+class SpeakableDelta:
+    text: str
+
+
+@dataclass(frozen=True)
+class ProgressEvent:
+    kind: str
+    text: str
+    raw: dict[str, Any]
+
+
+HermesEvent = SpeakableDelta | ProgressEvent
+
+
 async def stream_hermes_text(query: str, conversation_id: str) -> AsyncIterator[str]:
+    async for event in stream_hermes_events(query, conversation_id):
+        if isinstance(event, SpeakableDelta):
+            yield event.text
+
+
+async def stream_hermes_events(query: str, conversation_id: str) -> AsyncIterator[HermesEvent]:
     settings = get_settings()
     if settings.HERMES_MOCK:
-        chunks = (
-            "Hermes mock response: ",
-            f"I received '{query}'. ",
-            f"Conversation {conversation_id} is using local mock mode.",
+        events: tuple[HermesEvent, ...] = (
+            ProgressEvent(
+                kind="tool_call",
+                text="Mock Hermes started a tool call.",
+                raw={"mock": True},
+            ),
+            ProgressEvent(
+                kind="tool_result",
+                text="Mock Hermes received a tool result.",
+                raw={"mock": True},
+            ),
+            SpeakableDelta("Hermes mock response: "),
+            SpeakableDelta(f"I received '{query}'. "),
+            SpeakableDelta(f"Conversation {conversation_id} is using local mock mode."),
         )
-        for chunk in chunks:
+        for event in events:
             await asyncio.sleep(0.02)
-            yield chunk
+            yield event
         return
 
     async with httpx.AsyncClient(timeout=30) as client:
-        async for chunk in _stream_live_hermes_text(
+        async for event in _stream_live_hermes_events(
             query=query,
             conversation_id=conversation_id,
             base_url=settings.HERMES_BASE_URL,
@@ -34,10 +66,18 @@ async def stream_hermes_text(query: str, conversation_id: str) -> AsyncIterator[
             ),
             client=client,
         ):
-            yield chunk
+            yield event
 
 
 async def _stream_live_hermes_text(
+    **kwargs: Any,
+) -> AsyncIterator[str]:
+    async for event in _stream_live_hermes_events(**kwargs):
+        if isinstance(event, SpeakableDelta):
+            yield event.text
+
+
+async def _stream_live_hermes_events(
     *,
     query: str,
     conversation_id: str,
@@ -81,31 +121,48 @@ async def _stream_live_hermes_text(
             payload = json.loads((await response.aread()).decode())
             text = _extract_hermes_text(payload)
             if text:
-                yield text
+                yield SpeakableDelta(text)
             return
 
+        event_name: str | None = None
+        data_lines: list[str] = []
         async for line in response.aiter_lines():
-            text = _parse_hermes_stream_line(line)
-            if text:
-                yield text
+            async for event in _parse_sse_line(line, event_name, data_lines):
+                yield event
+            if line.startswith("event:"):
+                event_name = line.removeprefix("event:").strip()
+            elif line.startswith("data:"):
+                data_lines.append(line.removeprefix("data:").strip())
+            elif not line.strip():
+                event_name = None
+                data_lines.clear()
 
 
-def _parse_hermes_stream_line(line: str) -> str | None:
-    stripped = line.strip()
-    if not stripped:
-        return None
-    if stripped.startswith(":"):
-        return None
-    if stripped.startswith("data:"):
-        stripped = stripped.removeprefix("data:").strip()
-    if stripped == "[DONE]":
-        return None
-
+async def _parse_sse_line(
+    line: str, event_name: str | None, data_lines: list[str]
+) -> AsyncIterator[HermesEvent]:
+    if line.strip():
+        return
+    if not data_lines:
+        return
+    data = "\n".join(data_lines).strip()
+    if data == "[DONE]":
+        return
     try:
-        payload = json.loads(stripped)
+        payload = json.loads(data)
     except json.JSONDecodeError:
-        return stripped
-    return _extract_hermes_text(payload)
+        if data:
+            yield SpeakableDelta(data)
+        return
+
+    progress = _extract_progress_event(event_name, payload)
+    if progress is not None:
+        yield progress
+        return
+
+    text = _extract_hermes_text(payload)
+    if text:
+        yield SpeakableDelta(text)
 
 
 def _extract_hermes_text(payload: Any) -> str | None:
@@ -128,8 +185,77 @@ def _extract_hermes_text(payload: Any) -> str | None:
 
 
 async def collect_hermes_text(query: str, conversation_id: str) -> str:
+    return await collect_hermes_text_with_progress(query, conversation_id)
+
+
+async def collect_hermes_text_with_progress(
+    query: str,
+    conversation_id: str,
+    progress_handler: Any | None = None,
+) -> str:
     start = asyncio.get_running_loop().time()
-    chunks = [chunk async for chunk in stream_hermes_text(query, conversation_id)]
+    chunks: list[str] = []
+    async for event in stream_hermes_events(query, conversation_id):
+        if isinstance(event, SpeakableDelta):
+            chunks.append(event.text)
+        elif progress_handler is not None:
+            await progress_handler(event)
     elapsed_ms = (asyncio.get_running_loop().time() - start) * 1000
     logger.info("conversation_id={} hermes_round_trip_ms={:.2f}", conversation_id, elapsed_ms)
     return "".join(chunks)
+
+
+def _extract_progress_event(event_name: str | None, payload: Any) -> ProgressEvent | None:
+    if not isinstance(payload, dict):
+        return None
+
+    kind = _progress_kind(event_name, payload)
+    if kind is None:
+        return None
+
+    text = _extract_progress_text(payload)
+    if not text:
+        text = "Hermes is using a tool." if kind == "tool_call" else "Hermes received tool output."
+    return ProgressEvent(kind=kind, text=text, raw=payload)
+
+
+def _progress_kind(event_name: str | None, payload: dict[str, Any]) -> str | None:
+    haystack = " ".join(
+        str(value)
+        for value in (
+            event_name,
+            payload.get("type"),
+            payload.get("event"),
+            _nested_value(payload, ("item", "type")),
+            _nested_value(payload, ("delta", "type")),
+        )
+        if value is not None
+    ).lower()
+    if "tool_result" in haystack or "tool_output" in haystack or "function_call_output" in haystack:
+        return "tool_result"
+    if "tool_call" in haystack or "function_call" in haystack:
+        return "tool_call"
+    return None
+
+
+def _extract_progress_text(payload: dict[str, Any]) -> str:
+    for key in ("summary", "name", "text", "content", "arguments", "output"):
+        value = _extract_hermes_text(payload.get(key))
+        if value:
+            return value
+    for key in ("item", "delta", "result", "tool_call", "tool_result"):
+        nested = payload.get(key)
+        if isinstance(nested, dict):
+            text = _extract_progress_text(nested)
+            if text:
+                return text
+    return ""
+
+
+def _nested_value(payload: dict[str, Any], path: tuple[str, ...]) -> Any:
+    current: Any = payload
+    for key in path:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current

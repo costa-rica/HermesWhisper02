@@ -48,6 +48,15 @@ final class ProtocolEnvelopeTests: XCTestCase {
                 .assistantState(AssistantStateFrame(state: .answer))
             ),
             (
+                #"{"type":"hermes_progress","turn_id":"t1","kind":"tool_call","text":"Searching documents","ts":12.25}"#,
+                .hermesProgress(HermesProgressFrame(
+                    turnID: "t1",
+                    kind: .toolCall,
+                    text: "Searching documents",
+                    ts: 12.25
+                ))
+            ),
+            (
                 #"{"type":"audio_chunk","turn_id":"t1","seq":0,"format":"pcm16","sample_rate":24000,"bytes":4,"source":"ack"}"#,
                 .audioChunk(AudioChunkPrelude(
                     turnID: "t1",
@@ -96,6 +105,12 @@ final class ProtocolEnvelopeTests: XCTestCase {
             .userStoppedSpeaking(SpeechBoundaryFrame(type: SpeechBoundaryFrame.stoppedType, ts: 13.5)),
             .transcript(TranscriptFrame(turnID: "t1", text: "hello", isFinal: true)),
             .assistantState(AssistantStateFrame(state: .answer)),
+            .hermesProgress(HermesProgressFrame(
+                turnID: "t1",
+                kind: .toolResult,
+                text: "Found 3 documents",
+                ts: 12.75
+            )),
             .audioChunk(AudioChunkPrelude(
                 turnID: "t1",
                 seq: 0,

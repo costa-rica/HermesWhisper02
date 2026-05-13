@@ -218,6 +218,7 @@ enum ServerFrame: Codable, Equatable {
     case userStoppedSpeaking(SpeechBoundaryFrame)
     case transcript(TranscriptFrame)
     case assistantState(AssistantStateFrame)
+    case hermesProgress(HermesProgressFrame)
     case audioChunk(AudioChunkPrelude)
     case turnEnd(TurnEndFrame)
     case pong(PongFrame)
@@ -247,6 +248,8 @@ enum ServerFrame: Codable, Equatable {
             self = .transcript(try TranscriptFrame(from: decoder))
         case AssistantStateFrame.type:
             self = .assistantState(try AssistantStateFrame(from: decoder))
+        case HermesProgressFrame.type:
+            self = .hermesProgress(try HermesProgressFrame(from: decoder))
         case AudioChunkPrelude.type:
             self = .audioChunk(try AudioChunkPrelude(from: decoder))
         case TurnEndFrame.type:
@@ -269,6 +272,8 @@ enum ServerFrame: Codable, Equatable {
         case .transcript(let frame):
             try frame.encode(to: encoder)
         case .assistantState(let frame):
+            try frame.encode(to: encoder)
+        case .hermesProgress(let frame):
             try frame.encode(to: encoder)
         case .audioChunk(let frame):
             try frame.encode(to: encoder)
@@ -429,6 +434,52 @@ struct AssistantStateFrame: Codable, Equatable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(Self.type, forKey: .type)
         try container.encode(state, forKey: .state)
+    }
+}
+
+enum HermesProgressKind: String, Codable, Equatable {
+    case toolCall = "tool_call"
+    case toolResult = "tool_result"
+}
+
+struct HermesProgressFrame: Codable, Equatable {
+    static let type = "hermes_progress"
+
+    var turnID: String
+    var kind: HermesProgressKind
+    var text: String
+    var ts: Double
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case turnID = "turnId"
+        case kind
+        case text
+        case ts
+    }
+
+    init(turnID: String, kind: HermesProgressKind, text: String, ts: Double) {
+        self.turnID = turnID
+        self.kind = kind
+        self.text = text
+        self.ts = ts
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        turnID = try container.decode(String.self, forKey: .turnID)
+        kind = try container.decode(HermesProgressKind.self, forKey: .kind)
+        text = try container.decode(String.self, forKey: .text)
+        ts = try container.decode(Double.self, forKey: .ts)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(Self.type, forKey: .type)
+        try container.encode(turnID, forKey: .turnID)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(text, forKey: .text)
+        try container.encode(ts, forKey: .ts)
     }
 }
 

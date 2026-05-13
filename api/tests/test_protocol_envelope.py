@@ -42,7 +42,7 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
         )
         started = websocket.receive_json()
         _send_test_turn_audio(websocket)
-        transcript = websocket.receive_json()
+        progress_frames, transcript = _receive_until_type(websocket, "transcript")
         ack_state = websocket.receive_json()
         prelude = websocket.receive_json()
         audio = websocket.receive_bytes()
@@ -54,6 +54,7 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
 
     assert started["type"] == "session_started"
     assert started["resumed"] is False
+    assert [frame["kind"] for frame in progress_frames] == ["tool_call", "tool_result"]
     assert transcript["type"] == "transcript"
     assert ack_state == {"type": "assistant_state", "state": "ack"}
     assert prelude["type"] == "audio_chunk"
@@ -114,7 +115,7 @@ def test_voice_ws_ping_is_control_only(tmp_path, monkeypatch) -> None:
         websocket.send_json({"type": "ping", "ts": 12.5})
         pong = websocket.receive_json()
         _send_test_turn_audio(websocket)
-        transcript = websocket.receive_json()
+        _, transcript = _receive_until_type(websocket, "transcript")
 
     assert pong == {"type": "pong", "ts": 12.5}
     assert transcript["type"] == "transcript"
@@ -219,6 +220,15 @@ def _send_test_turn_audio(websocket) -> None:
         websocket.send_bytes(speech_chunk)
     for _ in range(60):
         websocket.send_bytes(silence_chunk)
+
+
+def _receive_until_type(websocket, frame_type: str):
+    skipped = []
+    while True:
+        frame = websocket.receive_json()
+        if frame["type"] == frame_type:
+            return skipped, frame
+        skipped.append(frame)
 
 
 def _seed_user_sync(email: str, password: str) -> str:

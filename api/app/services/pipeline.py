@@ -1,3 +1,4 @@
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from time import perf_counter
 from uuid import uuid4
@@ -36,6 +37,7 @@ class MockVoicePipeline:
         settings: Settings | None = None,
         stt: PipelineSTT | None = None,
         tts: PipelineTTS | None = None,
+        progress_handler: Callable[[str, str, str], Awaitable[None]] | None = None,
     ) -> None:
         settings = settings or get_settings()
         self.stt = stt or create_pipeline_stt(settings)
@@ -43,6 +45,7 @@ class MockVoicePipeline:
         self.front_llm = FrontAnswerProcessor(conversation_id=conversation_id or str(uuid4()))
         self.tts = tts or create_pipeline_tts(settings)
         self.context_messages = context_messages or []
+        self.progress_handler = progress_handler
 
     async def process_audio(self, audio: bytes, sample_rate: int = 16_000) -> PipelineTurn:
         vad_done = perf_counter()
@@ -81,7 +84,11 @@ class MockVoicePipeline:
             )
 
         llm_start = perf_counter()
-        answer_text = await self.front_llm.answer(transcript_frame)
+        answer_text = await self.front_llm.answer(
+            transcript_frame,
+            turn_id=turn_id,
+            progress_handler=self.progress_handler,
+        )
         llm_done = perf_counter()
         logger.info("turn_id={} stt_to_llm_ms={:.2f}", turn_id, (llm_done - stt_done) * 1000)
 
@@ -110,6 +117,7 @@ def build_pipeline(
     settings: Settings | None = None,
     stt: PipelineSTT | None = None,
     tts: PipelineTTS | None = None,
+    progress_handler: Callable[[str, str, str], Awaitable[None]] | None = None,
 ) -> MockVoicePipeline:
     return MockVoicePipeline(
         conversation_id=conversation_id,
@@ -117,4 +125,5 @@ def build_pipeline(
         settings=settings,
         stt=stt,
         tts=tts,
+        progress_handler=progress_handler,
     )

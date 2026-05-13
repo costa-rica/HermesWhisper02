@@ -91,7 +91,11 @@ async def _voice_loop(
     context_messages,
 ) -> None:
     pipeline = PassthroughEchoPipeline(adapter)
-    mock_pipeline = build_pipeline(conversation_id, context_messages)
+    mock_pipeline = build_pipeline(
+        conversation_id,
+        context_messages,
+        progress_handler=adapter.send_hermes_progress,
+    )
     segmenter = AudioTurnSegmenter()
     active_turn_id: str | None = None
     while True:
