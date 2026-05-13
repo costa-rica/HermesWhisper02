@@ -94,7 +94,9 @@ async def _stream_live_hermes_events(
 ) -> AsyncIterator[HermesEvent]:
     normalized_path = chat_path if chat_path.startswith("/") else f"/{chat_path}"
     url = f"{base_url.rstrip('/')}{normalized_path}"
-    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    headers = {"X-Hermes-Session-Id": conversation_id}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
     logger.info("hermes_live_request_starting url={} conversation_id={}", url, conversation_id)
     async with client.stream(
         "POST",

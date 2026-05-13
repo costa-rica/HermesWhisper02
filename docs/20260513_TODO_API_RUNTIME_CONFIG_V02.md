@@ -26,21 +26,21 @@ Edit docs/20260510_PROTOCOL_V01.md before any server changes (per root AGENTS.md
 
 Tasks:
 
-- [ ] Add to `client_hello`:
+- [x] Add to `client_hello`:
   - `intermediary_mode`: `"deterministic"` or `"llm"`. Default `"llm"`.
   - `audio_params`: optional object with any subset of `speech_rms_threshold`, `end_silence_seconds`, `min_turn_seconds`, `max_turn_seconds`.
-- [ ] New client to server frames:
+- [x] New client to server frames:
   - `set_intermediary_mode { mode }`
   - `set_audio_params { ... }`
-- [ ] New server to client frames:
+- [x] New server to client frames:
   - `assistant_text { turn_id, text, final, ts }` emitted after Hermes streaming finishes with the assembled final answer text.
   - `runtime_config_applied { fields: [...], values: { ... } }`.
-- [ ] Document semantics:
+- [x] Document semantics:
   - All runtime applies happen at the next turn boundary, not mid-turn.
   - Out-of-range values are clamped; the ack carries the clamped values.
   - `deterministic` routes substantive transcripts directly to Hermes, bypassing the front-LLM router.
   - `llm` keeps the existing front-LLM router behavior.
-- [ ] `protocol_version` remains 1 (additive only).
+- [x] `protocol_version` remains 1 (additive only).
 
 Commit: `docs: protocol additions for runtime config and assistant_text (20260513_TODO_API_RUNTIME_CONFIG_V02 phase 1)`.
 
@@ -50,18 +50,18 @@ Required before any long-gap resume work.
 
 Tasks:
 
-- [ ] Resolve docs/20260512_HERMES_HTTP_CONTRACT_DISCOVERY.md. Pick a contract: `/responses` with `conversation`, header (`X-Hermes-Session-Id` or `X-Hermes-Session-Key`), or chat-completions extension.
-- [ ] Update docs/20260512_HERMES_HTTP_CONTRACT_DISCOVERY.md with the chosen approach as its own commit.
+- [x] Resolve docs/20260512_HERMES_HTTP_CONTRACT_DISCOVERY.md. Pick a contract: `/responses` with `conversation`, header (`X-Hermes-Session-Id` or `X-Hermes-Session-Key`), or chat-completions extension.
+- [x] Update docs/20260512_HERMES_HTTP_CONTRACT_DISCOVERY.md with the chosen approach as its own commit.
 - [ ] Implement in api/app/services/hermes.py:
-  - [ ] Add the identifier to the outgoing request body and/or headers per the chosen contract.
-  - [ ] Keep `HERMES_MOCK=true` path intact for Mac dev.
-- [ ] Add `tests/test_hermes_session_propagation.py`:
-  - [ ] Mock the httpx call; assert the outgoing request contains the identifier in the agreed location.
-  - [ ] Mocked mode still works (no live HTTP).
+  - [x] Add the identifier to the outgoing request body and/or headers per the chosen contract.
+  - [x] Keep `HERMES_MOCK=true` path intact for Mac dev.
+- [x] Add `tests/test_hermes_session_propagation.py`:
+  - [x] Mock the httpx call; assert the outgoing request contains the identifier in the agreed location.
+  - [x] Mocked mode still works (no live HTTP).
 
 Checks before checking off:
 
-- [ ] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
+- [x] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
 
 Commit: `feat(api): propagate Hermes session id on every request (20260513_TODO_API_RUNTIME_CONFIG_V02 phase 2)`.
 
