@@ -324,9 +324,9 @@ final class VoiceSocket {
         switch frame {
         case .hermesProgress(let progress):
             switch progress.kind {
-            case .sentToHermes, .responseStarted, .toolCall, .toolResult:
+            case .sentToHermes, .responseStarted, .toolCall, .toolResult, .preparingAudio:
                 isServerProcessingTurn = true
-            case .finished, .failed:
+            case .finished, .audioReady, .failed:
                 break
             }
         case .turnEnd:

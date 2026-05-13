@@ -48,11 +48,11 @@ final class ProtocolEnvelopeTests: XCTestCase {
                 .assistantState(AssistantStateFrame(state: .answer))
             ),
             (
-                #"{"type":"hermes_progress","turn_id":"t1","kind":"response_started","text":"Hermes accepted the request.","ts":12.25}"#,
+                #"{"type":"hermes_progress","turn_id":"t1","kind":"preparing_audio","text":"Preparing spoken response.","ts":12.25}"#,
                 .hermesProgress(HermesProgressFrame(
                     turnID: "t1",
-                    kind: .responseStarted,
-                    text: "Hermes accepted the request.",
+                    kind: .preparingAudio,
+                    text: "Preparing spoken response.",
                     ts: 12.25
                 ))
             ),

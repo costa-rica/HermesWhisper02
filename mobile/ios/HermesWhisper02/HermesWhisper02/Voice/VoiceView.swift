@@ -213,6 +213,11 @@ struct VoiceView: View {
 
 private struct HermesActivityView: View {
     let events: [HermesActivityEvent]
+    @State private var showingActivityLog = false
+
+    private var compactEvents: [HermesActivityEvent] {
+        Array(events.suffix(4))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -220,6 +225,10 @@ private struct HermesActivityView: View {
                 Image(systemName: events.isEmpty ? "hourglass" : "checklist")
                 Text(events.isEmpty ? "Hermes activity" : "Hermes working")
                 Spacer()
+                if !events.isEmpty {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.caption2)
+                }
             }
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -233,8 +242,8 @@ private struct HermesActivityView: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: 6) {
-                            ForEach(events) { event in
-                                HermesActivityRow(event: event)
+                            ForEach(compactEvents) { event in
+                                HermesActivityRow(event: event, lineLimit: 2)
                                     .id(event.id)
                             }
                         }
@@ -251,11 +260,21 @@ private struct HermesActivityView: View {
         .padding(10)
         .background(.thinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .onTapGesture {
+            if !events.isEmpty {
+                showingActivityLog = true
+            }
+        }
+        .sheet(isPresented: $showingActivityLog) {
+            HermesActivityLogView(events: events)
+        }
     }
 }
 
 private struct HermesActivityRow: View {
     let event: HermesActivityEvent
+    var lineLimit: Int?
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -263,7 +282,7 @@ private struct HermesActivityRow: View {
                 .frame(width: 18)
             Text(event.text)
                 .font(.caption)
-                .lineLimit(3)
+                .lineLimit(lineLimit)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(.primary)
@@ -279,10 +298,50 @@ private struct HermesActivityRow: View {
             "wrench.and.screwdriver"
         case .toolResult:
             "checkmark.circle"
+        case .preparingAudio:
+            "waveform"
+        case .audioReady:
+            "speaker.wave.2"
         case .finished:
             "flag.checkered"
         case .failed:
             "exclamationmark.triangle"
+        }
+    }
+}
+
+private struct HermesActivityLogView: View {
+    let events: [HermesActivityEvent]
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(events) { event in
+                            HermesActivityRow(event: event, lineLimit: nil)
+                                .id(event.id)
+                                .padding(.vertical, 2)
+                        }
+                    }
+                    .padding()
+                }
+                .onAppear {
+                    if let lastID = events.last?.id {
+                        proxy.scrollTo(lastID, anchor: .bottom)
+                    }
+                }
+            }
+            .navigationTitle("Hermes activity")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

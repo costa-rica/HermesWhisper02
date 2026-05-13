@@ -60,6 +60,8 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
         "tool_call",
         "tool_result",
         "finished",
+        "preparing_audio",
+        "audio_ready",
     ]
     assert transcript["type"] == "transcript"
     assert ack_state == {"type": "assistant_state", "state": "ack"}

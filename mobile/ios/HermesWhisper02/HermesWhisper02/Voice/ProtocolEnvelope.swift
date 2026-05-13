@@ -442,6 +442,8 @@ enum HermesProgressKind: String, Codable, Equatable {
     case responseStarted = "response_started"
     case toolCall = "tool_call"
     case toolResult = "tool_result"
+    case preparingAudio = "preparing_audio"
+    case audioReady = "audio_ready"
     case finished
     case failed
 }

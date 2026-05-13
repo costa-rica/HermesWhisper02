@@ -92,7 +92,11 @@ class MockVoicePipeline:
         llm_done = perf_counter()
         logger.info("turn_id={} stt_to_llm_ms={:.2f}", turn_id, (llm_done - stt_done) * 1000)
 
+        if self.progress_handler is not None:
+            await self.progress_handler(turn_id, "preparing_audio", "Preparing spoken response.")
         answer_audio = await self.tts.synthesize(answer_text, turn_id)
+        if self.progress_handler is not None:
+            await self.progress_handler(turn_id, "audio_ready", "Spoken response ready.")
         tts_done = perf_counter()
         logger.info("turn_id={} llm_to_tts_ms={:.2f}", turn_id, (tts_done - llm_start) * 1000)
         chunks.append(

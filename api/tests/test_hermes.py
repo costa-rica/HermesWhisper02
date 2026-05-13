@@ -105,6 +105,66 @@ async def test_live_hermes_stream_surfaces_tool_progress() -> None:
     ]
 
 
+async def test_live_hermes_stream_formats_tool_arguments_for_activity() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            text=(
+                "event: response.output_item.added\n"
+                'data: {"type":"response.output_item.added",'
+                '"item":{"type":"function_call","name":"terminal",'
+                '"arguments":"{\\"command\\":\\"set -euo pipefail python3 - <<PY\\"}"}}\n\n'
+                "event: response.output_item.added\n"
+                'data: {"type":"response.output_item.added",'
+                '"item":{"type":"function_call","name":"read_file",'
+                '"arguments":{"path":"/home/nick/hermes/config.yaml"}}}\n\n'
+                "data: [DONE]\n\n"
+            ),
+        )
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        events = [
+            event
+            async for event in _stream_live_hermes_events(
+                query="inspect config",
+                conversation_id="conversation-1",
+                base_url="http://hermes.test",
+                chat_path="/v1/chat/completions",
+                model="hermes-agent",
+                api_key=None,
+                client=client,
+            )
+        ]
+
+    assert events[1:3] == [
+        ProgressEvent(
+            kind="tool_call",
+            text='terminal: "set -euo pipefail python3 - <<PY"',
+            raw={
+                "type": "response.output_item.added",
+                "item": {
+                    "type": "function_call",
+                    "name": "terminal",
+                    "arguments": '{"command":"set -euo pipefail python3 - <<PY"}',
+                },
+            },
+        ),
+        ProgressEvent(
+            kind="tool_call",
+            text='read_file: "/home/nick/hermes/config.yaml"',
+            raw={
+                "type": "response.output_item.added",
+                "item": {
+                    "type": "function_call",
+                    "name": "read_file",
+                    "arguments": {"path": "/home/nick/hermes/config.yaml"},
+                },
+            },
+        ),
+    ]
+
+
 async def test_collect_hermes_text_reports_lifecycle_progress(monkeypatch) -> None:
     events = []
 

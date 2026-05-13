@@ -256,7 +256,7 @@ def _extract_progress_event(event_name: str | None, payload: Any) -> ProgressEve
     if kind is None:
         return None
 
-    text = _extract_progress_text(payload)
+    text = _format_tool_progress_text(kind, payload) or _extract_progress_text(payload)
     if not text:
         text = "Hermes is using a tool." if kind == "tool_call" else "Hermes received tool output."
     return ProgressEvent(kind=kind, text=text, raw=payload)
@@ -293,6 +293,115 @@ def _extract_progress_text(payload: dict[str, Any]) -> str:
             if text:
                 return text
     return ""
+
+
+def _format_tool_progress_text(kind: str, payload: dict[str, Any]) -> str:
+    tool_payload = _find_tool_payload(payload)
+    if tool_payload is None:
+        return ""
+
+    name = _extract_tool_name(tool_payload)
+    detail = _extract_tool_detail(tool_payload, kind)
+    if name and detail:
+        return f"{name}: {detail}"
+    if name:
+        return name
+    return detail
+
+
+def _find_tool_payload(payload: dict[str, Any]) -> dict[str, Any] | None:
+    if _extract_tool_name(payload) or _extract_tool_detail(payload, "tool_call"):
+        return payload
+    for key in ("item", "delta", "result", "tool_call", "tool_result", "function", "function_call"):
+        nested = payload.get(key)
+        if isinstance(nested, dict):
+            found = _find_tool_payload(nested)
+            if found is not None:
+                return found
+    return None
+
+
+def _extract_tool_name(payload: dict[str, Any]) -> str:
+    for key in ("name", "tool_name", "function_name", "callable"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    function = payload.get("function")
+    if isinstance(function, dict):
+        return _extract_tool_name(function)
+    return ""
+
+
+def _extract_tool_detail(payload: dict[str, Any], kind: str) -> str:
+    keys = (
+        ("output", "result", "content", "text", "summary")
+        if kind == "tool_result"
+        else (
+            "arguments",
+            "args",
+            "input",
+            "command",
+            "path",
+            "query",
+            "pattern",
+            "content",
+            "text",
+        )
+    )
+    for key in keys:
+        value = payload.get(key)
+        detail = _format_tool_detail(value)
+        if detail:
+            return detail
+    function = payload.get("function")
+    if isinstance(function, dict):
+        return _extract_tool_detail(function, kind)
+    return ""
+
+
+def _format_tool_detail(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return ""
+        try:
+            parsed = json.loads(stripped)
+        except json.JSONDecodeError:
+            return _quote_and_truncate(stripped)
+        return _format_tool_detail(parsed)
+    if isinstance(value, dict):
+        preferred_keys = (
+            "command",
+            "cmd",
+            "path",
+            "file",
+            "query",
+            "pattern",
+            "glob",
+            "url",
+            "input",
+            "content",
+            "text",
+        )
+        for key in preferred_keys:
+            detail = _format_tool_detail(value.get(key))
+            if detail:
+                return detail
+        compact = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        return _quote_and_truncate(compact)
+    if isinstance(value, list):
+        compact = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        return _quote_and_truncate(compact)
+    return _quote_and_truncate(str(value))
+
+
+def _quote_and_truncate(value: str, limit: int = 140) -> str:
+    value = " ".join(value.split())
+    if len(value) > limit:
+        value = f"{value[: limit - 1]}..."
+    return f'"{value}"'
 
 
 def _nested_value(payload: dict[str, Any], path: tuple[str, ...]) -> Any:
