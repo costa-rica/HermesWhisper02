@@ -80,7 +80,7 @@ struct SettingsView: View {
                 settingsSlider(
                     topic: .maxTurnSeconds,
                     value: maxTurnSecondsBinding,
-                    range: 5.0...30.0,
+                    range: 5.0...120.0,
                     format: .number.precision(.fractionLength(0)),
                     onCommit: sendAudioParams
                 )
@@ -297,7 +297,7 @@ private enum SettingsHelpTopic: String, Identifiable {
         case .minTurnSeconds:
             return "The shortest spoken segment accepted as a turn. Raise it to reduce accidental tiny turns; lower it for quicker short requests."
         case .maxTurnSeconds:
-            return "The longest continuous segment collected before the server forces the turn to end and sends it."
+            return "The longest continuous segment collected before the server forces the turn to end and sends it. Longer turns can feel slower."
         case .bargeInRmsThreshold:
             return "Local microphone energy needed to interrupt assistant playback. Lower values interrupt more easily; higher values require louder speech."
         case .bargeInWindowDuration:

@@ -37,3 +37,21 @@ def test_runtime_config_accepts_intermediary_mode() -> None:
 
     assert accepted == {"intermediary_mode": "deterministic"}
     assert config.intermediary_mode == "deterministic"
+
+
+def test_runtime_config_allows_two_minute_max_turns() -> None:
+    config = SessionRuntimeConfig()
+
+    accepted = config.apply_partial({"max_turn_seconds": 120})
+
+    assert accepted == {"max_turn_seconds": 120.0}
+    assert config.max_turn_seconds == 120.0
+
+
+def test_runtime_config_clamps_max_turns_above_two_minutes() -> None:
+    config = SessionRuntimeConfig()
+
+    accepted = config.apply_partial({"max_turn_seconds": 121})
+
+    assert accepted == {"max_turn_seconds": 120.0}
+    assert config.max_turn_seconds == 120.0

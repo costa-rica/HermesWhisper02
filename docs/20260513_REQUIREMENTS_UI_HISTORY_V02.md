@@ -174,7 +174,7 @@ Server-side (sent via `client_hello.audio_params` or `set_audio_params`):
 | speech_rms_threshold  | 0.003   | normalized 0..1 | 0.001 – 0.05 | api/app/routes/voice_ws.py:29   |
 | end_silence_seconds   | 1.1     | seconds         | 0.3 – 3.0    | api/app/routes/voice_ws.py:28   |
 | min_turn_seconds      | 0.8     | seconds         | 0.2 – 2.0    | api/app/routes/voice_ws.py:26   |
-| max_turn_seconds      | 8.0     | seconds         | 5.0 – 30.0   | api/app/routes/voice_ws.py:27   |
+| max_turn_seconds      | 8.0     | seconds         | 5.0 – 120.0  | api/app/services/session_runtime_config.py |
 
 Client-side (applied locally to BargeInDetector.Config):
 
