@@ -9,6 +9,7 @@ from app.config import Settings, get_settings
 from app.models import VoiceMessage
 from app.pipecat_processors.ack_processor import DeterministicAckProcessor
 from app.services.front_llm import FrontAnswerProcessor
+from app.services.session_runtime_config import SessionRuntimeConfig
 from app.services.stt import PipelineSTT, create_pipeline_stt
 from app.services.tts import PipelineTTS, create_pipeline_tts
 
@@ -38,6 +39,7 @@ class MockVoicePipeline:
         stt: PipelineSTT | None = None,
         tts: PipelineTTS | None = None,
         progress_handler: Callable[[str, str, str], Awaitable[None]] | None = None,
+        runtime_config: SessionRuntimeConfig | None = None,
     ) -> None:
         settings = settings or get_settings()
         self.stt = stt or create_pipeline_stt(settings)
@@ -46,6 +48,7 @@ class MockVoicePipeline:
         self.tts = tts or create_pipeline_tts(settings)
         self.context_messages = context_messages or []
         self.progress_handler = progress_handler
+        self.runtime_config = runtime_config or SessionRuntimeConfig()
 
     async def process_audio(self, audio: bytes, sample_rate: int = 16_000) -> PipelineTurn:
         vad_done = perf_counter()
@@ -84,6 +87,7 @@ class MockVoicePipeline:
             )
 
         llm_start = perf_counter()
+        self.front_llm.intermediary_mode = self.runtime_config.intermediary_mode
         answer_text = await self.front_llm.answer(
             transcript_frame,
             turn_id=turn_id,
@@ -122,6 +126,7 @@ def build_pipeline(
     stt: PipelineSTT | None = None,
     tts: PipelineTTS | None = None,
     progress_handler: Callable[[str, str, str], Awaitable[None]] | None = None,
+    runtime_config: SessionRuntimeConfig | None = None,
 ) -> MockVoicePipeline:
     return MockVoicePipeline(
         conversation_id=conversation_id,
@@ -130,4 +135,5 @@ def build_pipeline(
         stt=stt,
         tts=tts,
         progress_handler=progress_handler,
+        runtime_config=runtime_config,
     )

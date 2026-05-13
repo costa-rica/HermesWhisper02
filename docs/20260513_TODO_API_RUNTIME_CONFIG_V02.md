@@ -87,28 +87,28 @@ Commit: `feat(api): emit assistant_text on turn completion (20260513_TODO_API_RU
 
 Tasks:
 
-- [ ] Add `app/services/session_runtime_config.py` with a dataclass:
+- [x] Add `app/services/session_runtime_config.py` with a dataclass:
   - `intermediary_mode: Literal["deterministic","llm"] = "llm"`
   - `speech_rms_threshold: float = 0.003`
   - `end_silence_seconds: float = 1.1`
   - `min_turn_seconds: float = 0.8`
   - `max_turn_seconds: float = 8.0`
   - Method `apply_partial(updates: dict) -> dict` returning the clamped fields and values.
-- [ ] In `app/routes/voice_ws.py`:
-  - [ ] Replace the four module-level constants with reads from a per-connection `SessionRuntimeConfig`.
-  - [ ] Pass the config into `AudioTurnSegmenter` so each new turn picks up the latest values at the next silence boundary.
-  - [ ] On `client_hello`, populate the config from `intermediary_mode` and `audio_params` (clamped).
-- [ ] In `app/services/front_llm.py`:
-  - [ ] When `intermediary_mode == "deterministic"`, route substantive transcripts straight to Hermes without front-LLM intervention. Do not skip producing an answer.
-  - [ ] When `intermediary_mode == "llm"`, keep the existing router logic (ack for trivial, Hermes for substantive).
-- [ ] Tests:
-  - [ ] `tests/test_runtime_config.py` covers clamping and apply.
-  - [ ] `tests/test_voice_ws_runtime.py` covers `client_hello` overrides applied on the first turn.
-  - [ ] Coverage for deterministic routing producing a Hermes call.
+- [x] In `app/routes/voice_ws.py`:
+  - [x] Replace the four module-level constants with reads from a per-connection `SessionRuntimeConfig`.
+  - [x] Pass the config into `AudioTurnSegmenter` so each new turn picks up the latest values at the next silence boundary.
+  - [x] On `client_hello`, populate the config from `intermediary_mode` and `audio_params` (clamped).
+- [x] In `app/services/front_llm.py`:
+  - [x] When `intermediary_mode == "deterministic"`, route substantive transcripts straight to Hermes without front-LLM intervention. Do not skip producing an answer.
+  - [x] When `intermediary_mode == "llm"`, keep the existing router logic (ack for trivial, Hermes for substantive).
+- [x] Tests:
+  - [x] `tests/test_runtime_config.py` covers clamping and apply.
+  - [x] `tests/test_voice_ws_runtime.py` covers `client_hello` overrides applied on the first turn.
+  - [x] Coverage for deterministic routing producing a Hermes call.
 
 Checks before checking off:
 
-- [ ] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
+- [x] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
 
 Commit: `feat(api): per-session runtime config and routing modes (20260513_TODO_API_RUNTIME_CONFIG_V02 phase 4)`.
 

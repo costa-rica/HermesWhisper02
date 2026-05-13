@@ -9,6 +9,7 @@ from app.config import Settings
 from app.errors import APIError
 from app.pipecat_processors.ack_processor import is_trivial_transcript
 from app.services.hermes import ProgressEvent, collect_hermes_text_with_progress
+from app.services.session_runtime_config import IntermediaryMode
 
 SYSTEM_PROMPT = (
     "You are the answer voice of an AI agent. A separate processor handles short "
@@ -34,6 +35,7 @@ def create_front_llm_service(settings: Settings) -> OpenAILLMService:
 @dataclass
 class FrontAnswerProcessor:
     conversation_id: str
+    intermediary_mode: IntermediaryMode = "llm"
     hermes_calls: int = 0
 
     async def answer(
@@ -43,7 +45,9 @@ class FrontAnswerProcessor:
         turn_id: str | None = None,
         progress_handler: Callable[[str, str, str], Awaitable[None]] | None = None,
     ) -> TextFrame:
-        if is_trivial_transcript(transcript.text):
+        if self.intermediary_mode in ("deterministic", "llm") and is_trivial_transcript(
+            transcript.text
+        ):
             text_frame = TextFrame("Hi. I am here.")
         else:
             self.hermes_calls += 1

@@ -16,6 +16,7 @@ from app.pipecat_processors.ws_transport_adapter import (
     ProjectWebSocketTransportAdapter,
 )
 from app.services.pipeline import build_pipeline
+from app.services.session_runtime_config import SessionRuntimeConfig
 from app.services.tokens import verify_token
 from app.services.voice_store import VoiceStore
 
@@ -37,6 +38,7 @@ async def voice_ws(websocket: WebSocket) -> None:
         user = await _authenticate(websocket)
         hello = await _receive_client_hello(websocket)
         settings = get_settings()
+        runtime_config = _runtime_config_from_hello(hello)
         store = VoiceStore(Database(settings.DB_PATH))
         session, resumed = await store.get_or_create_session(
             user.id,
@@ -61,6 +63,7 @@ async def voice_ws(websocket: WebSocket) -> None:
             session.id,
             session.conversation_id,
             context_messages,
+            runtime_config,
         )
     except APIError as exc:
         await websocket.send_json(_error_payload(exc))
@@ -90,14 +93,16 @@ async def _voice_loop(
     session_id: str,
     conversation_id: str,
     context_messages,
+    runtime_config: SessionRuntimeConfig,
 ) -> None:
     pipeline = PassthroughEchoPipeline(adapter)
     mock_pipeline = build_pipeline(
         conversation_id,
         context_messages,
         progress_handler=adapter.send_hermes_progress,
+        runtime_config=runtime_config,
     )
-    segmenter = AudioTurnSegmenter()
+    segmenter = AudioTurnSegmenter(runtime_config)
     active_turn_id: str | None = None
     while True:
         websocket = adapter.websocket
@@ -191,15 +196,18 @@ async def _voice_loop(
 
 
 class AudioTurnSegmenter:
-    def __init__(self) -> None:
+    def __init__(self, config: SessionRuntimeConfig | None = None) -> None:
+        self.config = config or SessionRuntimeConfig()
+        self._turn_config: SessionRuntimeConfig | None = None
         self.buffer = bytearray()
         self.speech_seen = False
         self.trailing_silence_seconds = 0.0
 
     def add(self, audio: bytes) -> bytes | None:
+        config = self._active_config()
         duration = len(audio) / (UPLINK_SAMPLE_RATE * UPLINK_BYTES_PER_SAMPLE)
         rms = _pcm16_rms(audio)
-        if rms >= SPEECH_RMS_THRESHOLD:
+        if rms >= config.speech_rms_threshold:
             self.speech_seen = True
             self.trailing_silence_seconds = 0.0
         elif self.speech_seen:
@@ -209,11 +217,11 @@ class AudioTurnSegmenter:
             self.buffer.extend(audio)
 
         buffered_seconds = len(self.buffer) / (UPLINK_SAMPLE_RATE * UPLINK_BYTES_PER_SAMPLE)
-        if not self.speech_seen or buffered_seconds < MIN_TURN_SECONDS:
+        if not self.speech_seen or buffered_seconds < config.min_turn_seconds:
             return None
         if (
-            self.trailing_silence_seconds < END_SILENCE_SECONDS
-            and buffered_seconds < MAX_TURN_SECONDS
+            self.trailing_silence_seconds < config.end_silence_seconds
+            and buffered_seconds < config.max_turn_seconds
         ):
             return None
 
@@ -224,7 +232,19 @@ class AudioTurnSegmenter:
     def reset(self) -> None:
         self.buffer.clear()
         self.speech_seen = False
+        self._turn_config = None
         self.trailing_silence_seconds = 0.0
+
+    def _active_config(self) -> SessionRuntimeConfig:
+        if self._turn_config is None:
+            self._turn_config = SessionRuntimeConfig(
+                intermediary_mode=self.config.intermediary_mode,
+                speech_rms_threshold=self.config.speech_rms_threshold,
+                end_silence_seconds=self.config.end_silence_seconds,
+                min_turn_seconds=self.config.min_turn_seconds,
+                max_turn_seconds=self.config.max_turn_seconds,
+            )
+        return self._turn_config
 
 
 def _pcm16_rms(audio: bytes) -> float:
@@ -275,6 +295,21 @@ async def _receive_client_hello(websocket: WebSocket) -> dict[str, Any]:
             code="VALIDATION_ERROR", message="Unsupported uplink sample rate", status=400
         )
     return frame
+
+
+def _runtime_config_from_hello(hello: dict[str, Any]) -> SessionRuntimeConfig:
+    config = SessionRuntimeConfig()
+    updates: dict[str, Any] = {}
+    if "intermediary_mode" in hello:
+        updates["intermediary_mode"] = hello["intermediary_mode"]
+    audio_params = hello.get("audio_params")
+    if isinstance(audio_params, dict):
+        updates.update(audio_params)
+    try:
+        config.apply_partial(updates)
+    except ValueError as exc:
+        raise APIError(code="VALIDATION_ERROR", message=str(exc), status=400) from exc
+    return config
 
 
 def _parse_json(payload: str) -> dict[str, Any]:
