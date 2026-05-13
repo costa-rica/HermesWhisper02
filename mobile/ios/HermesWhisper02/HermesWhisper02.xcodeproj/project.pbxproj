@@ -24,6 +24,7 @@
 		5497E658CD3F0B1603ED29CC /* ProtocolVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 194B82E416B71208C98A3F59 /* ProtocolVersion.swift */; };
 		5683D8434D5C843311C06277 /* PlaybackActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */; };
 		5A37610F429EFA3B6DA0A246 /* AssistantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */; };
+		5B17F4AD110CD7284FEAB986 /* ConversationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72FE6A7B0822BF09AAE7964 /* ConversationDetailView.swift */; };
 		61220796CD78E47FB6603FF9 /* VoiceInteractionModeStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E500EEED78C5F797D96F88 /* VoiceInteractionModeStoreTests.swift */; };
 		6A514B2F8012197CE8EE451D /* ServerProfileEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC1C64D916F91B56A3969B8 /* ServerProfileEditView.swift */; };
 		6ADEF5F20F33846194187FE4 /* ErrorEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA62808A5A2F301000D69B55 /* ErrorEnvelope.swift */; };
@@ -37,6 +38,7 @@
 		973BE564318122FA4FB40387 /* VoiceSocketIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A74271DE091B3A5C74E30561 /* VoiceSocketIntegrationTests.swift */; };
 		97A2AA4469FD0E430E424389 /* VoiceInteractionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8E56A67E5FD9E989196C41 /* VoiceInteractionMode.swift */; };
 		A2EEA52BEFC9F6287128221F /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B7AE66B1E251F5CFF96F21D0 /* libsqlite3.tbd */; };
+		A9DF7CC21E65F9222F31B7BC /* ConversationHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E759B86CD9411B2FDC5BDB9 /* ConversationHistoryView.swift */; };
 		B319005DB46CB24FF1F9E6BE /* ServerRegistryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35AC43133650C131A10D849 /* ServerRegistryStore.swift */; };
 		B62FDBF3EA6B528308277F5E /* VoiceControllerPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B12991674AC8F30164E49 /* VoiceControllerPersistenceTests.swift */; };
 		BE365532AE47D02F8AD12F21 /* ServerRegistryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */; };
@@ -74,6 +76,7 @@
 
 /* Begin PBXFileReference section */
 		0A1744EF33C678FDF596B712 /* VoiceSocketMessageProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSocketMessageProcessorTests.swift; sourceTree = "<group>"; };
+		0E759B86CD9411B2FDC5BDB9 /* ConversationHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistoryView.swift; sourceTree = "<group>"; };
 		0FA78936E88717E1D0C0A5A9 /* HermesWhisper02App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesWhisper02App.swift; sourceTree = "<group>"; };
 		1555FDE85A09391BAF88F1EF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		18F3F5F56721B1289B49A806 /* BargeInDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BargeInDetector.swift; sourceTree = "<group>"; };
@@ -103,6 +106,7 @@
 		9A05E5D4F16C7C0C2F8B762B /* ServerInfoProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerInfoProbeTests.swift; sourceTree = "<group>"; };
 		9EA6097E53D13298D904DE0E /* ProtocolEnvelopeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtocolEnvelopeTests.swift; sourceTree = "<group>"; };
 		A0102E514ECCCAA8950B1510 /* AudioCaptureFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureFormatTests.swift; sourceTree = "<group>"; };
+		A72FE6A7B0822BF09AAE7964 /* ConversationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationDetailView.swift; sourceTree = "<group>"; };
 		A74271DE091B3A5C74E30561 /* VoiceSocketIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSocketIntegrationTests.swift; sourceTree = "<group>"; };
 		B073FAD9BCDEB822AE9BF2BB /* AssistantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantState.swift; sourceTree = "<group>"; };
 		B7AE66B1E251F5CFF96F21D0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
@@ -177,6 +181,8 @@
 		2E4DE2EBFAC1A5CC9731F7E8 /* Conversation */ = {
 			isa = PBXGroup;
 			children = (
+				A72FE6A7B0822BF09AAE7964 /* ConversationDetailView.swift */,
+				0E759B86CD9411B2FDC5BDB9 /* ConversationHistoryView.swift */,
 				923795D325FEC91301E75182 /* ConversationModels.swift */,
 				4A39CD60569957532437FCCA /* ConversationStore.swift */,
 				E98C425AFFDC92874B872001 /* ConversationTranscriptView.swift */,
@@ -441,6 +447,8 @@
 				3C6C991800927A7E31960A3A /* AudioPlayer.swift in Sources */,
 				05DB174BB1523620A10A578D /* AuthService.swift in Sources */,
 				11AC4374D7DE91DD87693CA7 /* BargeInDetector.swift in Sources */,
+				5B17F4AD110CD7284FEAB986 /* ConversationDetailView.swift in Sources */,
+				A9DF7CC21E65F9222F31B7BC /* ConversationHistoryView.swift in Sources */,
 				D9C37ED7CF36EEB0BC994B49 /* ConversationModels.swift in Sources */,
 				7B52EBF2417BE370D538F9EE /* ConversationStore.swift in Sources */,
 				DF6C56D2FA855B98CCB8721B /* ConversationTranscriptView.swift in Sources */,

@@ -44,6 +44,8 @@ final class VoiceControllerPersistenceTests: XCTestCase {
             "Once upon a time, Hermes answered clearly."
         ])
         XCTAssertEqual(messages.map(\.turnID), ["turn-1", "turn-1"])
+        XCTAssertEqual(controller.transcriptMessages, messages)
+        XCTAssertNil(controller.liveTranscript)
     }
 
     func testCanceledTurnDoesNotPersistAssistantMessage() async throws {

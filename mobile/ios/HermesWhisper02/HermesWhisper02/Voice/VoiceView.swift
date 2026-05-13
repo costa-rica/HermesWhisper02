@@ -47,10 +47,18 @@ struct VoiceView: View {
         }
         .sheet(isPresented: $showingHistory) {
             NavigationStack {
-                Text("Conversation history")
-                    .foregroundStyle(.secondary)
-                    .navigationTitle("History")
-                    .navigationBarTitleDisplayMode(.inline)
+                if let store = appEnvironment.conversationStore {
+                    ConversationHistoryView(
+                        store: store,
+                        activeServerName: appEnvironment.activeServerName,
+                        onResume: resumeConversation
+                    )
+                } else {
+                    Text("History unavailable.")
+                        .foregroundStyle(.secondary)
+                        .navigationTitle("History")
+                        .navigationBarTitleDisplayMode(.inline)
+                }
             }
         }
         .sheet(isPresented: $showingSettings) {
@@ -266,6 +274,25 @@ struct VoiceView: View {
         }
         isPressingPTT = false
         stopAudioCapture()
+    }
+
+    private func resumeConversation(sessionID: String) {
+        showingHistory = false
+        stopAudioCapture()
+        voiceTask = Task {
+            do {
+                try await voiceController.startSession(
+                    profile: appEnvironment.activeProfile,
+                    resumeSessionID: sessionID,
+                    pttMode: interactionMode.pttMode
+                )
+            } catch {
+                await MainActor.run {
+                    audioError = error.localizedDescription
+                    isPressingPTT = false
+                }
+            }
+        }
     }
 
     private func logout() {

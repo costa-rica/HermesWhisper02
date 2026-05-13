@@ -124,6 +124,23 @@ final class ConversationStoreTests: XCTestCase {
         XCTAssertEqual(try store.loadMessages(sessionID: "session-1"), [])
     }
 
+    func testChangeTokenUpdatesAfterTurnCommitWrites() throws {
+        let store = try makeStore()
+        try store.upsertSession(id: "session-1", hermesConversationID: "hermes-1", title: nil)
+        let previousToken = store.changeToken
+
+        try store.appendMessage(
+            sessionID: "session-1",
+            turnID: "turn-1",
+            role: .assistant,
+            text: "hi",
+            final: true,
+            metadata: "{}"
+        )
+
+        XCTAssertNotEqual(store.changeToken, previousToken)
+    }
+
     private func makeStore(profileID: UUID = UUID()) throws -> ConversationStore {
         try ConversationStore(
             serverProfileID: profileID,

@@ -110,25 +110,25 @@ Commit: `feat(mobile): new main screen layout (20260513_TODO_MOBILE_UI_HISTORY_V
 
 Tasks:
 
-- [ ] Add `Conversation/ConversationHistoryView.swift` presented from the hamburger as a `.sheet` (leading edge feel via `.presentationDetents([.large])`; iPad slide-out can come later).
-- [ ] Header shows the active server name (smaller, non-tappable).
-- [ ] List rows: preview, updated_at (relative), message_count.
-- [ ] Tap pushes `Conversation/ConversationDetailView.swift` (read-only; reuses `ConversationTranscriptView`).
-- [ ] Detail screen has a Resume button:
-  - [ ] Enabled only after API V02 phase 7 ships (long-gap resume). Until then, render as a disabled button with a tooltip.
-  - [ ] Tapping Resume calls `VoiceController.startSession(resumeSessionID: session.id)`.
-- [ ] Swipe-to-delete removes the local row only. Use label "Remove from this device" in the trailing swipe action.
-- [ ] Reload list reactively on store change publisher (refreshes after every committed turn).
-- [ ] On active profile switch, the view loads from the new `ConversationStore`.
+- [x] Add `Conversation/ConversationHistoryView.swift` presented from the hamburger as a `.sheet` (leading edge feel via `.presentationDetents([.large])`; iPad slide-out can come later).
+- [x] Header shows the active server name (smaller, non-tappable).
+- [x] List rows: preview, updated_at (relative), message_count.
+- [x] Tap pushes `Conversation/ConversationDetailView.swift` (read-only; reuses `ConversationTranscriptView`).
+- [x] Detail screen has a Resume button:
+  - [x] Enabled only after API V02 phase 7 ships (long-gap resume). Until then, render as a disabled button with a tooltip.
+  - [x] Tapping Resume calls `VoiceController.startSession(resumeSessionID: session.id)`.
+- [x] Swipe-to-delete removes the local row only. Use label "Remove from this device" in the trailing swipe action.
+- [x] Reload list reactively on store change publisher (refreshes after every committed turn).
+- [x] On active profile switch, the view loads from the new `ConversationStore`.
 
 Tests:
 
-- [ ] Add a second server profile in test fixtures; verify the drawer list returns only the active profile's sessions.
-- [ ] Verify the list updates after a `turn_end` commit.
+- [x] Add a second server profile in test fixtures; verify the drawer list returns only the active profile's sessions.
+- [x] Verify the list updates after a `turn_end` commit.
 
 Checks before checking off:
 
-- [ ] `xcodebuild test` passes.
+- [x] `xcodebuild test` passes.
 - [ ] Manual sim check: drawer opens, detail renders, Resume re-opens the WebSocket once API V02 phase 7 lands.
 
 Commit: `feat(mobile): conversation history drawer (20260513_TODO_MOBILE_UI_HISTORY_V02 phase 5)`.
