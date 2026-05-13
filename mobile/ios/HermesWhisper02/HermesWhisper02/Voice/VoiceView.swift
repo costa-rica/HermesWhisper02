@@ -73,7 +73,6 @@ struct VoiceView: View {
                     profileID: appEnvironment.activeProfile.id,
                     interactionMode: $interactionMode,
                     settingsStore: runtimeSettingsStore,
-                    initialSettings: runtimeSettings,
                     onSettingsChanged: { settings in
                         runtimeSettings = settings
                         voiceController.applyRuntimeSettings(settings)

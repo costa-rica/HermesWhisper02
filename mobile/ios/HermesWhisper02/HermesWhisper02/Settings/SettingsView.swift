@@ -12,32 +12,8 @@ struct SettingsView: View {
     let onLogout: () -> Void
 
     @Environment(\.dismiss) private var dismiss
-    @State private var settings: RuntimeSettings
+    @State private var settings = RuntimeSettings()
     @State private var helpTopic: SettingsHelpTopic?
-
-    init(
-        profileID: UUID,
-        interactionMode: Binding<VoiceInteractionMode>,
-        settingsStore: RuntimeSettingsStore,
-        initialSettings: RuntimeSettings,
-        onSettingsChanged: @escaping (RuntimeSettings) -> Void,
-        onIntermediaryModeChanged: @escaping (IntermediaryMode) -> Void,
-        onAudioParamsChanged: @escaping (RuntimeAudioParams) -> Void,
-        onBargeInChanged: @escaping (BargeInDetector.Config) -> Void,
-        onInteractionModeChanged: @escaping (VoiceInteractionMode) -> Void,
-        onLogout: @escaping () -> Void
-    ) {
-        self.profileID = profileID
-        self._interactionMode = interactionMode
-        self.settingsStore = settingsStore
-        self.onSettingsChanged = onSettingsChanged
-        self.onIntermediaryModeChanged = onIntermediaryModeChanged
-        self.onAudioParamsChanged = onAudioParamsChanged
-        self.onBargeInChanged = onBargeInChanged
-        self.onInteractionModeChanged = onInteractionModeChanged
-        self.onLogout = onLogout
-        self._settings = State(initialValue: initialSettings)
-    }
 
     var body: some View {
         Form {
@@ -148,6 +124,10 @@ struct SettingsView: View {
                     dismiss()
                 }
             }
+        }
+        .onAppear {
+            settings = settingsStore.load(profileID: profileID)
+            onSettingsChanged(settings)
         }
     }
 
