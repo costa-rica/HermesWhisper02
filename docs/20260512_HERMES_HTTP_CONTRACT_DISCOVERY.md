@@ -12,6 +12,7 @@ Host: avatar08
 - The endpoint is OpenAI Chat Completions compatible.
 - It supports both non-streaming JSON responses and streaming Server-Sent Events when `stream: true` is sent.
 - The API server currently requires bearer authentication for most `/v1/*` endpoints because `API_SERVER_KEY` is configured in the Hermes Agent environment. Do not log or commit the key.
+- HermesWhisper02 will preserve Hermes-side conversation memory by sending the stored `conversation_id` as the `X-Hermes-Session-Id` header on every live chat-completions request.
 
 ## Process and service
 
@@ -191,6 +192,28 @@ Useful optional headers:
 - `X-Hermes-Session-Key`: stable per-channel memory scope. This also requires API key authentication.
 - `Idempotency-Key`: supported for non-streaming chat completion requests.
 
+## Chosen HermesWhisper02 session strategy
+
+HermesWhisper02 will continue to use:
+
+- Endpoint: `POST /v1/chat/completions`
+- Request body: OpenAI-compatible `messages` plus `stream`
+- Memory identifier: `X-Hermes-Session-Id: <conversation_id>`
+
+Rationale:
+
+1. The current live integration already uses Chat Completions successfully.
+2. The Hermes gateway advertises `X-Hermes-Session-Id` as its session continuity header.
+3. This keeps Hermes session memory owned by Hermes and avoids duplicating agent memory in HermesWhisper02.
+4. The HermesWhisper02 `session_id` remains a mobile/API voice session id; `conversation_id` remains the Hermes memory id sent to the gateway.
+
+Implementation notes:
+
+- Only send `X-Hermes-Session-Id` when `HERMES_MOCK=false`.
+- Do not log the API key or bearer header.
+- Keep `HERMES_API_KEY` as the bearer credential for the Hermes gateway.
+- Long-gap resume should reuse the stored `conversation_id`, then this header reconnects the request to the same Hermes memory scope.
+
 ## Expected non-streaming response format
 
 A successful non-streaming response is OpenAI Chat Completions shaped:
@@ -253,5 +276,4 @@ Clients that only need assistant text should process `data:` chat completion chu
 ## Unresolved questions
 
 - HermesWhisper02 must have a safe way to supply the bearer token if the API key remains configured. This discovery did not inspect or document secret values.
-- The ideal session strategy for HermesWhisper02 is not yet decided: either send full conversation history in `messages`, use `X-Hermes-Session-Id`, or use a stable `X-Hermes-Session-Key` for memory scoping.
 - The `/v1/responses` endpoint is also available, but this discovery focused on the Chat Completions endpoint because HermesWhisper02 currently has `HERMES_CHAT_PATH`.
