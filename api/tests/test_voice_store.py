@@ -56,6 +56,35 @@ async def test_voice_store_rejects_foreign_owner_resume(tmp_path) -> None:
     assert resumed_session.owner_id == "owner-2"
 
 
+async def test_voice_store_get_session_for_owner(tmp_path) -> None:
+    db = Database(tmp_path / "voice.sqlite")
+    await db.bootstrap()
+    store = VoiceStore(db)
+    session, _ = await store.get_or_create_session("owner-1")
+
+    found = await store.get_session_for_owner("owner-1", session.id)
+    missing = await store.get_session_for_owner("owner-1", "missing-session")
+    foreign = await store.get_session_for_owner("owner-2", session.id)
+
+    assert found == session
+    assert missing is None
+    assert foreign is None
+
+
+async def test_voice_store_lists_recent_messages_newest_first(tmp_path) -> None:
+    db = Database(tmp_path / "voice.sqlite")
+    await db.bootstrap()
+    store = VoiceStore(db)
+    session, _ = await store.get_or_create_session("owner-1")
+    await store.append_message(session.id, "user", "one")
+    await store.append_message(session.id, "assistant", "two")
+    await store.append_message(session.id, "user", "three")
+
+    messages = await store.list_recent_messages(session.id, limit=2)
+
+    assert [message.content for message in messages] == ["three", "two"]
+
+
 async def test_voice_store_persists_only_completed_turn_messages(tmp_path) -> None:
     db = Database(tmp_path / "voice.sqlite")
     await db.bootstrap()

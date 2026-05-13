@@ -135,17 +135,17 @@ Commit: `feat(api): live runtime config frames (20260513_TODO_API_RUNTIME_CONFIG
 
 Tasks:
 
-- [ ] In `app/services/voice_store.py` (or `app/db.py` if that is where session helpers live):
-  - [ ] Add `get_session_for_owner(owner_id: str, session_id: str) -> dict | None` that looks up without creating.
-  - [ ] Add `list_recent_messages(session_id: str, limit: int) -> list[dict]` returning newest first.
-- [ ] Update or keep `get_or_create_session` separate. Long-gap resume must call `get_session_for_owner` first.
-- [ ] Tests:
-  - [ ] `get_session_for_owner` returns None when missing; returns row when present and owned; rejects ownership mismatch.
-  - [ ] `list_recent_messages` returns at most `limit` rows in DESC order.
+- [x] In `app/services/voice_store.py` (or `app/db.py` if that is where session helpers live):
+  - [x] Add `get_session_for_owner(owner_id: str, session_id: str) -> dict | None` that looks up without creating.
+  - [x] Add `list_recent_messages(session_id: str, limit: int) -> list[dict]` returning newest first.
+- [x] Update or keep `get_or_create_session` separate. Long-gap resume must call `get_session_for_owner` first.
+- [x] Tests:
+  - [x] `get_session_for_owner` returns None when missing; returns row when present and owned; rejects ownership mismatch.
+  - [x] `list_recent_messages` returns at most `limit` rows in DESC order.
 
 Checks before checking off:
 
-- [ ] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
+- [x] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
 
 Commit: `feat(api): voice_store session and message helpers (20260513_TODO_API_RUNTIME_CONFIG_V02 phase 6)`.
 

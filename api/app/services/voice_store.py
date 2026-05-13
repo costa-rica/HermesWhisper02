@@ -60,6 +60,19 @@ class VoiceStore:
             (utc_now_iso(), session_id),
         )
 
+    async def get_session_for_owner(self, owner_id: str, session_id: str) -> VoiceSession | None:
+        row = await self.db.fetch_one(
+            """
+            SELECT id, owner_id, conversation_id, created_at, last_seen
+            FROM voice_sessions
+            WHERE id = ? AND owner_id = ?
+            """,
+            (session_id, owner_id),
+        )
+        if row is None:
+            return None
+        return VoiceSession.model_validate(dict(row))
+
     async def append_message(self, session_id: str, role: str, content: str) -> VoiceMessage:
         message = VoiceMessage(
             id=str(uuid4()),
@@ -92,6 +105,19 @@ class VoiceStore:
             ORDER BY created_at ASC, id ASC
             """,
             (session_id,),
+        )
+        return [VoiceMessage.model_validate(dict(row)) for row in rows]
+
+    async def list_recent_messages(self, session_id: str, limit: int) -> list[VoiceMessage]:
+        rows = await self.db.fetch_all(
+            """
+            SELECT id, session_id, role, content, created_at
+            FROM voice_messages
+            WHERE session_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT ?
+            """,
+            (session_id, limit),
         )
         return [VoiceMessage.model_validate(dict(row)) for row in rows]
 
