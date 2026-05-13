@@ -31,7 +31,7 @@ final class VoiceSocket {
     }
 
     private static let heartbeatIntervalNanoseconds: UInt64 = 15_000_000_000
-    private static let heartbeatTimeoutNanoseconds: UInt64 = 5_000_000_000
+    private static let heartbeatTimeoutNanoseconds: UInt64 = 240_000_000_000
     private static let reconnectDelaysNanoseconds: [UInt64] = [
         200_000_000,
         500_000_000,

@@ -43,7 +43,7 @@ _AUDIO_LIMITS = {
     "speech_rms_threshold": (0.0001, 0.1),
     "end_silence_seconds": (0.2, 5.0),
     "min_turn_seconds": (0.1, 5.0),
-    "max_turn_seconds": (1.0, 120.0),
+    "max_turn_seconds": (1.0, 180.0),
 }
 
 

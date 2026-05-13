@@ -80,7 +80,7 @@ struct SettingsView: View {
                 settingsSlider(
                     topic: .maxTurnSeconds,
                     value: maxTurnSecondsBinding,
-                    range: 5.0...120.0,
+                    range: 5.0...180.0,
                     format: .number.precision(.fractionLength(0)),
                     onCommit: sendAudioParams
                 )

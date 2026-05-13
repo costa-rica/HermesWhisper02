@@ -10,6 +10,8 @@ from pipecat.services.openai.stt import OpenAIRealtimeSTTService, OpenAISTTServi
 from app.config import Settings
 from app.errors import APIError
 
+OPENAI_STT_TIMEOUT_SECONDS = 240
+
 
 class PipelineSTT(Protocol):
     async def transcribe(self, audio: bytes, sample_rate: int = 16_000) -> TranscriptionFrame: ...
@@ -29,7 +31,10 @@ class OpenAIHTTPPipelineSTT:
 
     async def transcribe(self, audio: bytes, sample_rate: int = 16_000) -> TranscriptionFrame:
         wav_audio = _pcm16_mono_to_wav(audio, sample_rate)
-        async with httpx.AsyncClient(timeout=30, transport=self.transport) as client:
+        async with httpx.AsyncClient(
+            timeout=OPENAI_STT_TIMEOUT_SECONDS,
+            transport=self.transport,
+        ) as client:
             response = await client.post(
                 "https://api.openai.com/v1/audio/transcriptions",
                 headers={"Authorization": f"Bearer {self.api_key}"},

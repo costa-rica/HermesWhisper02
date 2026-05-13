@@ -7,6 +7,8 @@ from pipecat.services.openai.tts import OpenAITTSService
 from app.config import Settings
 from app.errors import APIError
 
+OPENAI_TTS_TIMEOUT_SECONDS = 120
+
 
 class PipelineTTS(Protocol):
     async def synthesize(self, frame: TextFrame, turn_id: str) -> TTSAudioRawFrame: ...
@@ -27,7 +29,10 @@ class OpenAIHTTPPipelineTTS:
         self.transport = transport
 
     async def synthesize(self, frame: TextFrame, turn_id: str) -> TTSAudioRawFrame:
-        async with httpx.AsyncClient(timeout=30, transport=self.transport) as client:
+        async with httpx.AsyncClient(
+            timeout=OPENAI_TTS_TIMEOUT_SECONDS,
+            transport=self.transport,
+        ) as client:
             response = await client.post(
                 "https://api.openai.com/v1/audio/speech",
                 headers={"Authorization": f"Bearer {self.api_key}"},

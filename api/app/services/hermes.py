@@ -24,6 +24,8 @@ class ProgressEvent:
 
 HermesEvent = SpeakableDelta | ProgressEvent
 
+HERMES_TIMEOUT_SECONDS = 240
+
 
 async def stream_hermes_text(query: str, conversation_id: str) -> AsyncIterator[str]:
     async for event in stream_hermes_events(query, conversation_id):
@@ -59,7 +61,7 @@ async def stream_hermes_events(query: str, conversation_id: str) -> AsyncIterato
             yield event
         return
 
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with httpx.AsyncClient(timeout=HERMES_TIMEOUT_SECONDS) as client:
         async for event in _stream_live_hermes_events(
             query=query,
             conversation_id=conversation_id,
