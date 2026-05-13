@@ -31,6 +31,11 @@ targets:
           NSAllowsLocalNetworking: true
         UIBackgroundModes:
           - audio
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     scheme:
       testTargets:
         - HermesWhisper02Tests
