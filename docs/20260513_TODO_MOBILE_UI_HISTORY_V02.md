@@ -85,23 +85,23 @@ Commit: `feat(mobile): resume plumbing (20260513_TODO_MOBILE_UI_HISTORY_V02 phas
 
 Tasks:
 
-- [ ] Refactor `Voice/VoiceView.swift`:
-  - [ ] Top bar at top of safe area: hamburger (left), tappable server-name title (center, multiline, large font like today's "Hello"), gear (right), modest side padding.
-  - [ ] Tap server name presents the existing `ServerRegistryView` as a `.sheet`.
-  - [ ] Compact status block under the title: Mic RMS, assistant state, Hermes activity strip, Start/Stop button. No behavior change to that block.
-  - [ ] Remove the "Hello, HermesWhisper02" text.
-  - [ ] Remove the standalone Servers and Logout buttons.
-- [ ] Add `Conversation/ConversationTranscriptView.swift`:
-  - [ ] `ScrollViewReader` with auto-scroll to newest.
-  - [ ] User bubbles align trailing; assistant bubbles align leading.
-  - [ ] Each bubble `<= 0.80 * parent width`.
-  - [ ] `.textSelection(.enabled)` per bubble's text.
-  - [ ] Distinct background and corner styles per role.
-- [ ] Use the transcript view as the bottom portion of `VoiceView`. Feed from a published list combining the persisted current session with any in-flight live transcript.
+- [x] Refactor `Voice/VoiceView.swift`:
+  - [x] Top bar at top of safe area: hamburger (left), tappable server-name title (center, multiline, large font like today's "Hello"), gear (right), modest side padding.
+  - [x] Tap server name presents the existing `ServerRegistryView` as a `.sheet`.
+  - [x] Compact status block under the title: Mic RMS, assistant state, Hermes activity strip, Start/Stop button. No behavior change to that block.
+  - [x] Remove the "Hello, HermesWhisper02" text.
+  - [x] Remove the standalone Servers and Logout buttons.
+- [x] Add `Conversation/ConversationTranscriptView.swift`:
+  - [x] `ScrollViewReader` with auto-scroll to newest.
+  - [x] User bubbles align trailing; assistant bubbles align leading.
+  - [x] Each bubble `<= 0.80 * parent width`.
+  - [x] `.textSelection(.enabled)` per bubble's text.
+  - [x] Distinct background and corner styles per role.
+- [x] Use the transcript view as the bottom portion of `VoiceView`. Feed from a published list combining the persisted current session with any in-flight live transcript.
 
 Checks before checking off:
 
-- [ ] `xcodebuild test` passes.
+- [x] `xcodebuild test` passes.
 - [ ] Manual sim check: long server names wrap; transcript scrolls; selection works per bubble.
 
 Commit: `feat(mobile): new main screen layout (20260513_TODO_MOBILE_UI_HISTORY_V02 phase 4)`.

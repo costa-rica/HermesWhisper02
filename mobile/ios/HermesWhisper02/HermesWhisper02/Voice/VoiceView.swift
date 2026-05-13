@@ -9,100 +9,29 @@ struct VoiceView: View {
     @State private var audioError: String?
     @State private var logoutError: String?
     @State private var showingServers = false
+    @State private var showingHistory = false
+    @State private var showingSettings = false
     @State private var interactionMode: VoiceInteractionMode = .continuous
     @State private var isPressingPTT = false
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Hello, HermesWhisper02")
-                .font(.title2)
-            Text(appEnvironment.activeServerName)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            VStack(spacing: 8) {
-                Text("Mic RMS")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                ProgressView(value: min(voiceController.microphoneRMS * 3, 1))
-                    .frame(maxWidth: 220)
-                Text(voiceController.microphoneRMS, format: .number.precision(.fractionLength(3)))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-            VStack(spacing: 6) {
-                Text(voiceController.assistantState.rawValue)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                if !voiceController.statusMessage.isEmpty {
-                    Text(voiceController.statusMessage)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                if !voiceController.latestTranscript.isEmpty {
-                    Text(voiceController.latestTranscript)
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                }
-            }
-            HermesActivityView(events: voiceController.hermesActivity)
-                .frame(maxWidth: 340)
-            Picker("Mode", selection: $interactionMode) {
-                ForEach(VoiceInteractionMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 300)
-            .onChange(of: interactionMode) { _, newMode in
-                interactionModeStore.save(newMode, profileID: appEnvironment.activeProfile.id)
-                stopAudioCapture()
-            }
-            if interactionMode == .continuous {
-                Button {
-                    toggleAudioCapture()
-                } label: {
-                    Label(
-                        voiceController.isRunning ? "Stop voice" : "Start voice",
-                        systemImage: voiceController.isRunning ? "mic.slash" : "mic"
-                    )
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(voiceController.isConnecting)
-            } else {
-                Label(
-                    isPressingPTT ? "Release to stop" : "Hold to talk",
-                    systemImage: isPressingPTT ? "mic.fill" : "mic"
-                )
-                .frame(minWidth: 160)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 14)
-                .foregroundStyle(.white)
-                .background(isPressingPTT ? Color.red : Color.accentColor)
-                .clipShape(Capsule())
-                .opacity(voiceController.isConnecting ? 0.6 : 1)
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in
-                            startPushToTalkIfNeeded()
-                        }
-                        .onEnded { _ in
-                            stopPushToTalk()
-                        }
-                )
-            }
-            Button("Log out", role: .destructive) {
-                logout()
-            }
-            .buttonStyle(.bordered)
-            Button {
-                showingServers = true
-            } label: {
-                Label("Servers", systemImage: "server.rack")
-            }
-            .buttonStyle(.bordered)
+        VStack(spacing: 0) {
+            topBar
+                .padding(.horizontal, 18)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+
+            statusBlock
+                .padding(.horizontal, 18)
+                .padding(.bottom, 10)
+
+            Divider()
+
+            ConversationTranscriptView(
+                messages: voiceController.transcriptMessages,
+                liveUserText: voiceController.liveTranscript
+            )
         }
-        .padding()
         .onAppear {
             voiceController.setConversationStore(appEnvironment.conversationStore)
             interactionMode = interactionModeStore.load(profileID: appEnvironment.activeProfile.id)
@@ -114,6 +43,22 @@ struct VoiceView: View {
         .sheet(isPresented: $showingServers) {
             NavigationStack {
                 ServerRegistryView()
+            }
+        }
+        .sheet(isPresented: $showingHistory) {
+            NavigationStack {
+                Text("Conversation history")
+                    .foregroundStyle(.secondary)
+                    .navigationTitle("History")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            NavigationStack {
+                Text("Settings")
+                    .foregroundStyle(.secondary)
+                    .navigationTitle("Settings")
+                    .navigationBarTitleDisplayMode(.inline)
             }
         }
         .alert("Logout failed", isPresented: logoutFailed) {
@@ -132,6 +77,126 @@ struct VoiceView: View {
         }
         .onDisappear {
             stopAudioCapture()
+        }
+    }
+
+    private var topBar: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Button {
+                showingHistory = true
+            } label: {
+                Image(systemName: "line.3.horizontal")
+                    .font(.title3)
+                    .frame(width: 38, height: 38)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Conversation history")
+
+            Button {
+                showingServers = true
+            } label: {
+                Text(appEnvironment.activeServerName)
+                    .font(.title2)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Active server")
+
+            Button {
+                showingSettings = true
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.title3)
+                    .frame(width: 38, height: 38)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Settings")
+        }
+    }
+
+    private var statusBlock: some View {
+        VStack(spacing: 10) {
+            HStack(alignment: .center, spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Mic RMS")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ProgressView(value: min(voiceController.microphoneRMS * 3, 1))
+                    Text(voiceController.microphoneRMS, format: .number.precision(.fractionLength(3)))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Assistant")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(voiceController.assistantState.rawValue)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if !voiceController.statusMessage.isEmpty {
+                        Text(voiceController.statusMessage)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+            }
+
+            HermesActivityView(events: voiceController.hermesActivity)
+
+            Picker("Mode", selection: $interactionMode) {
+                ForEach(VoiceInteractionMode.allCases) { mode in
+                    Text(mode.label).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: interactionMode) { _, newMode in
+                interactionModeStore.save(newMode, profileID: appEnvironment.activeProfile.id)
+                stopAudioCapture()
+            }
+
+            voiceControl
+        }
+    }
+
+    @ViewBuilder
+    private var voiceControl: some View {
+        if interactionMode == .continuous {
+            Button {
+                toggleAudioCapture()
+            } label: {
+                Label(
+                    voiceController.isRunning ? "Stop voice" : "Start voice",
+                    systemImage: voiceController.isRunning ? "mic.slash" : "mic"
+                )
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(voiceController.isConnecting)
+        } else {
+            Label(
+                isPressingPTT ? "Release to stop" : "Hold to talk",
+                systemImage: isPressingPTT ? "mic.fill" : "mic"
+            )
+            .frame(minWidth: 160)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .foregroundStyle(.white)
+            .background(isPressingPTT ? Color.red : Color.accentColor)
+            .clipShape(Capsule())
+            .opacity(voiceController.isConnecting ? 0.6 : 1)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        startPushToTalkIfNeeded()
+                    }
+                    .onEnded { _ in
+                        stopPushToTalk()
+                    }
+            )
         }
     }
 

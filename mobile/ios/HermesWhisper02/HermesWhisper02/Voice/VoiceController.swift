@@ -33,6 +33,8 @@ final class VoiceController: VoiceDisconnecting {
     var errorMessage: String?
     var statusMessage = ""
     var hermesActivity: [HermesActivityEvent] = []
+    var transcriptMessages: [ConversationMessage] = []
+    var liveTranscript: String?
 
     init(
         keychain: KeychainStore = KeychainStore(),
@@ -50,6 +52,8 @@ final class VoiceController: VoiceDisconnecting {
         self.conversationStore = conversationStore
         activeConversationSessionID = nil
         pendingTurns.removeAll()
+        transcriptMessages = []
+        liveTranscript = nil
     }
 
     func start(profile: ServerProfile, pttMode: Bool = false) async throws {
@@ -154,6 +158,7 @@ final class VoiceController: VoiceDisconnecting {
         hermesActivity = []
         activityTurnID = nil
         pendingTurns.removeAll()
+        liveTranscript = nil
     }
 
     private func handle(_ event: VoiceSocket.VoiceEvent) async {
@@ -192,6 +197,7 @@ final class VoiceController: VoiceDisconnecting {
             sessionID = started.sessionID
             activeConversationSessionID = started.sessionID
             upsertSession(started)
+            loadCurrentConversationMessages()
             if previousSessionID != nil && !started.resumed {
                 statusMessage = "Reconnected; previous turn lost."
             } else if started.resumed {
@@ -210,6 +216,7 @@ final class VoiceController: VoiceDisconnecting {
                 hermesActivity = []
             }
             if transcript.isFinal {
+                liveTranscript = transcript.text
                 updatePendingTurn(transcript.turnID) { pending in
                     pending.userText = transcript.text
                 }
@@ -239,6 +246,7 @@ final class VoiceController: VoiceDisconnecting {
                 await audioPlayer.flushAndStop()
                 // Canceled turns are dropped as a pair so local history mirrors completed exchanges only.
                 pendingTurns[turnEnd.turnID] = nil
+                liveTranscript = nil
             } else {
                 commitPendingTurn(turnEnd.turnID)
             }
@@ -302,6 +310,23 @@ final class VoiceController: VoiceDisconnecting {
         } catch {
             errorMessage = "Unable to save conversation turn."
             AppLog.voice.error("voice_conversation_turn_save_failed turn_id=\(turnID, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
+        }
+        liveTranscript = nil
+        loadCurrentConversationMessages()
+    }
+
+    private func loadCurrentConversationMessages() {
+        guard let sessionID = activeConversationSessionID,
+              let conversationStore else {
+            transcriptMessages = []
+            return
+        }
+
+        do {
+            transcriptMessages = try conversationStore.loadMessages(sessionID: sessionID)
+        } catch {
+            errorMessage = "Unable to load conversation transcript."
+            AppLog.voice.error("voice_conversation_load_failed error=\(error.localizedDescription, privacy: .public)")
         }
     }
 

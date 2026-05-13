@@ -47,6 +47,7 @@
 		D0102423B424DDC707DC5A17 /* ServerRegistryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835E6519F51AAB04BBF1B8BD /* ServerRegistryView.swift */; };
 		D4C07A8BF3A90F1280ACED29 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38AA9BA27F6B39A4A2D54AEA /* AudioCapture.swift */; };
 		D9C37ED7CF36EEB0BC994B49 /* ConversationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 923795D325FEC91301E75182 /* ConversationModels.swift */; };
+		DF6C56D2FA855B98CCB8721B /* ConversationTranscriptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98C425AFFDC92874B872001 /* ConversationTranscriptView.swift */; };
 		E0E2440FB1A03EB88CE06CC2 /* VoiceSocketMessageProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1744EF33C678FDF596B712 /* VoiceSocketMessageProcessorTests.swift */; };
 		E85F269BAC2D2532EB397380 /* AuthServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */; };
 		EB22E52A6DB78A2A9BC921EA /* VoiceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29E39A6F985798169851C0C /* VoiceController.swift */; };
@@ -117,6 +118,7 @@
 		E101AC29B3A0A7D2CD852C6F /* VoiceSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSocket.swift; sourceTree = "<group>"; };
 		E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceTests.swift; sourceTree = "<group>"; };
 		E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnId.swift; sourceTree = "<group>"; };
+		E98C425AFFDC92874B872001 /* ConversationTranscriptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTranscriptView.swift; sourceTree = "<group>"; };
 		EA5B12991674AC8F30164E49 /* VoiceControllerPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControllerPersistenceTests.swift; sourceTree = "<group>"; };
 		EC846F6BECE04324F6BB84BC /* SanityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanityTests.swift; sourceTree = "<group>"; };
 		F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActor.swift; sourceTree = "<group>"; };
@@ -177,6 +179,7 @@
 			children = (
 				923795D325FEC91301E75182 /* ConversationModels.swift */,
 				4A39CD60569957532437FCCA /* ConversationStore.swift */,
+				E98C425AFFDC92874B872001 /* ConversationTranscriptView.swift */,
 			);
 			path = Conversation;
 			sourceTree = "<group>";
@@ -440,6 +443,7 @@
 				11AC4374D7DE91DD87693CA7 /* BargeInDetector.swift in Sources */,
 				D9C37ED7CF36EEB0BC994B49 /* ConversationModels.swift in Sources */,
 				7B52EBF2417BE370D538F9EE /* ConversationStore.swift in Sources */,
+				DF6C56D2FA855B98CCB8721B /* ConversationTranscriptView.swift in Sources */,
 				6ADEF5F20F33846194187FE4 /* ErrorEnvelope.swift in Sources */,
 				1E789ADE30C2867D68B564DD /* HermesWhisper02App.swift in Sources */,
 				2424ECB7134FEFE4EFDCDB43 /* KeychainStore.swift in Sources */,
