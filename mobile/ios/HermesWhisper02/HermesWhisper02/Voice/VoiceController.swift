@@ -16,6 +16,7 @@ final class VoiceController: VoiceDisconnecting {
     private let audioCapture: AudioCapture
     private let audioPlayer: AudioPlayer
     private var conversationStore: ConversationStore?
+    private var runtimeSettings = RuntimeSettings()
     private var bargeInDetector = BargeInDetector()
     private var socket: VoiceSocket?
     private var audioTask: Task<Void, Never>?
@@ -56,6 +57,33 @@ final class VoiceController: VoiceDisconnecting {
         liveTranscript = nil
     }
 
+    func applyRuntimeSettings(_ settings: RuntimeSettings) {
+        runtimeSettings = settings
+        updateBargeInConfig(settings.bargeInConfig)
+    }
+
+    func updateBargeInConfig(_ config: BargeInDetector.Config) {
+        bargeInDetector = BargeInDetector(config: config)
+    }
+
+    func sendIntermediaryMode(_ mode: IntermediaryMode) async {
+        do {
+            try await socket?.sendJSON(.setIntermediaryMode(SetIntermediaryModeFrame(mode: mode)))
+            statusMessage = "Settings apply next turn."
+        } catch {
+            handleFailure(error)
+        }
+    }
+
+    func sendAudioParams(_ params: RuntimeAudioParams) async {
+        do {
+            try await socket?.sendJSON(.setAudioParams(SetAudioParamsFrame(params: params)))
+            statusMessage = "Settings apply next turn."
+        } catch {
+            handleFailure(error)
+        }
+    }
+
     func start(profile: ServerProfile, pttMode: Bool = false) async throws {
         try await startSession(
             profile: profile,
@@ -82,7 +110,9 @@ final class VoiceController: VoiceDisconnecting {
             profile: profile,
             keychain: keychain,
             priorSessionID: resumeSessionID,
-            pttMode: pttMode
+            pttMode: pttMode,
+            intermediaryMode: runtimeSettings.intermediaryMode,
+            audioParams: runtimeSettings.audioParams
         )
 
         do {
@@ -237,6 +267,8 @@ final class VoiceController: VoiceDisconnecting {
             }
             hermesActivity.append(HermesActivityEvent(frame: progress))
             statusMessage = "Hermes is working."
+        case .runtimeConfigApplied:
+            statusMessage = "Settings apply next turn."
         case .userStartedSpeaking:
             AppLog.voice.info("voice_server_user_started_speaking action=flush_playback")
             await audioPlayer.flushAndStop()

@@ -48,9 +48,43 @@ enum AudioSource: String, Codable, Equatable, Hashable {
     case answer
 }
 
+enum IntermediaryMode: String, Codable, CaseIterable, Identifiable, Equatable {
+    case deterministic
+    case llm
+
+    var id: String {
+        rawValue
+    }
+
+    var label: String {
+        switch self {
+        case .deterministic:
+            "Deterministic"
+        case .llm:
+            "LLM"
+        }
+    }
+}
+
+struct RuntimeAudioParams: Codable, Equatable {
+    var speechRmsThreshold: Double?
+    var endSilenceSeconds: Double?
+    var minTurnSeconds: Double?
+    var maxTurnSeconds: Double?
+
+    private enum CodingKeys: String, CodingKey {
+        case speechRmsThreshold
+        case endSilenceSeconds
+        case minTurnSeconds
+        case maxTurnSeconds
+    }
+}
+
 enum ClientFrame: Codable, Equatable {
     case clientHello(ClientHelloFrame)
     case cancelTurn(CancelTurnFrame)
+    case setIntermediaryMode(SetIntermediaryModeFrame)
+    case setAudioParams(SetAudioParamsFrame)
     case ping(PingFrame)
     case clientBye(ClientByeFrame)
 
@@ -63,6 +97,10 @@ enum ClientFrame: Codable, Equatable {
         case .clientHello(let frame):
             try frame.encode(to: encoder)
         case .cancelTurn(let frame):
+            try frame.encode(to: encoder)
+        case .setIntermediaryMode(let frame):
+            try frame.encode(to: encoder)
+        case .setAudioParams(let frame):
             try frame.encode(to: encoder)
         case .ping(let frame):
             try frame.encode(to: encoder)
@@ -79,6 +117,10 @@ enum ClientFrame: Codable, Equatable {
             self = .clientHello(try ClientHelloFrame(from: decoder))
         case CancelTurnFrame.type:
             self = .cancelTurn(try CancelTurnFrame(from: decoder))
+        case SetIntermediaryModeFrame.type:
+            self = .setIntermediaryMode(try SetIntermediaryModeFrame(from: decoder))
+        case SetAudioParamsFrame.type:
+            self = .setAudioParams(try SetAudioParamsFrame(from: decoder))
         case PingFrame.type:
             self = .ping(try PingFrame(from: decoder))
         case ClientByeFrame.type:
@@ -97,6 +139,8 @@ struct ClientHelloFrame: Codable, Equatable {
     var downlinkFormat: AudioFormat = .pcm16
     var sampleRate: Int = Int(AudioCapture.targetSampleRate)
     var pttMode: Bool
+    var intermediaryMode: IntermediaryMode?
+    var audioParams: RuntimeAudioParams?
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -105,6 +149,8 @@ struct ClientHelloFrame: Codable, Equatable {
         case downlinkFormat
         case sampleRate
         case pttMode
+        case intermediaryMode
+        case audioParams
     }
 
     init(
@@ -112,13 +158,17 @@ struct ClientHelloFrame: Codable, Equatable {
         sessionID: String? = nil,
         downlinkFormat: AudioFormat = .pcm16,
         sampleRate: Int = Int(AudioCapture.targetSampleRate),
-        pttMode: Bool
+        pttMode: Bool,
+        intermediaryMode: IntermediaryMode? = nil,
+        audioParams: RuntimeAudioParams? = nil
     ) {
         self.protocolVersion = protocolVersion
         self.sessionID = sessionID
         self.downlinkFormat = downlinkFormat
         self.sampleRate = sampleRate
         self.pttMode = pttMode
+        self.intermediaryMode = intermediaryMode
+        self.audioParams = audioParams
     }
 
     init(from decoder: Decoder) throws {
@@ -128,6 +178,8 @@ struct ClientHelloFrame: Codable, Equatable {
         downlinkFormat = try container.decode(AudioFormat.self, forKey: .downlinkFormat)
         sampleRate = try container.decode(Int.self, forKey: .sampleRate)
         pttMode = try container.decode(Bool.self, forKey: .pttMode)
+        intermediaryMode = try container.decodeIfPresent(IntermediaryMode.self, forKey: .intermediaryMode)
+        audioParams = try container.decodeIfPresent(RuntimeAudioParams.self, forKey: .audioParams)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -138,6 +190,8 @@ struct ClientHelloFrame: Codable, Equatable {
         try container.encode(downlinkFormat, forKey: .downlinkFormat)
         try container.encode(sampleRate, forKey: .sampleRate)
         try container.encode(pttMode, forKey: .pttMode)
+        try container.encodeIfPresent(intermediaryMode, forKey: .intermediaryMode)
+        try container.encodeIfPresent(audioParams, forKey: .audioParams)
     }
 }
 
@@ -164,6 +218,85 @@ struct CancelTurnFrame: Codable, Equatable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(Self.type, forKey: .type)
         try container.encodeIfPresent(turnID, forKey: .turnID)
+    }
+}
+
+struct SetIntermediaryModeFrame: Codable, Equatable {
+    static let type = "set_intermediary_mode"
+
+    var mode: IntermediaryMode
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case mode
+    }
+
+    init(mode: IntermediaryMode) {
+        self.mode = mode
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        mode = try container.decode(IntermediaryMode.self, forKey: .mode)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(Self.type, forKey: .type)
+        try container.encode(mode, forKey: .mode)
+    }
+}
+
+struct SetAudioParamsFrame: Codable, Equatable {
+    static let type = "set_audio_params"
+
+    var speechRmsThreshold: Double?
+    var endSilenceSeconds: Double?
+    var minTurnSeconds: Double?
+    var maxTurnSeconds: Double?
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case speechRmsThreshold
+        case endSilenceSeconds
+        case minTurnSeconds
+        case maxTurnSeconds
+    }
+
+    init(
+        speechRmsThreshold: Double? = nil,
+        endSilenceSeconds: Double? = nil,
+        minTurnSeconds: Double? = nil,
+        maxTurnSeconds: Double? = nil
+    ) {
+        self.speechRmsThreshold = speechRmsThreshold
+        self.endSilenceSeconds = endSilenceSeconds
+        self.minTurnSeconds = minTurnSeconds
+        self.maxTurnSeconds = maxTurnSeconds
+    }
+
+    init(params: RuntimeAudioParams) {
+        self.speechRmsThreshold = params.speechRmsThreshold
+        self.endSilenceSeconds = params.endSilenceSeconds
+        self.minTurnSeconds = params.minTurnSeconds
+        self.maxTurnSeconds = params.maxTurnSeconds
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        speechRmsThreshold = try container.decodeIfPresent(Double.self, forKey: .speechRmsThreshold)
+        endSilenceSeconds = try container.decodeIfPresent(Double.self, forKey: .endSilenceSeconds)
+        minTurnSeconds = try container.decodeIfPresent(Double.self, forKey: .minTurnSeconds)
+        maxTurnSeconds = try container.decodeIfPresent(Double.self, forKey: .maxTurnSeconds)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(Self.type, forKey: .type)
+        try container.encodeIfPresent(speechRmsThreshold, forKey: .speechRmsThreshold)
+        try container.encodeIfPresent(endSilenceSeconds, forKey: .endSilenceSeconds)
+        try container.encodeIfPresent(minTurnSeconds, forKey: .minTurnSeconds)
+        try container.encodeIfPresent(maxTurnSeconds, forKey: .maxTurnSeconds)
     }
 }
 
@@ -220,6 +353,7 @@ enum ServerFrame: Codable, Equatable {
     case assistantText(AssistantTextFrame)
     case assistantState(AssistantStateFrame)
     case hermesProgress(HermesProgressFrame)
+    case runtimeConfigApplied(RuntimeConfigAppliedFrame)
     case audioChunk(AudioChunkPrelude)
     case turnEnd(TurnEndFrame)
     case pong(PongFrame)
@@ -253,6 +387,8 @@ enum ServerFrame: Codable, Equatable {
             self = .assistantState(try AssistantStateFrame(from: decoder))
         case HermesProgressFrame.type:
             self = .hermesProgress(try HermesProgressFrame(from: decoder))
+        case RuntimeConfigAppliedFrame.type:
+            self = .runtimeConfigApplied(try RuntimeConfigAppliedFrame(from: decoder))
         case AudioChunkPrelude.type:
             self = .audioChunk(try AudioChunkPrelude(from: decoder))
         case TurnEndFrame.type:
@@ -279,6 +415,8 @@ enum ServerFrame: Codable, Equatable {
         case .assistantState(let frame):
             try frame.encode(to: encoder)
         case .hermesProgress(let frame):
+            try frame.encode(to: encoder)
+        case .runtimeConfigApplied(let frame):
             try frame.encode(to: encoder)
         case .audioChunk(let frame):
             try frame.encode(to: encoder)
@@ -538,6 +676,37 @@ struct HermesProgressFrame: Codable, Equatable {
         try container.encode(kind, forKey: .kind)
         try container.encode(text, forKey: .text)
         try container.encode(ts, forKey: .ts)
+    }
+}
+
+struct RuntimeConfigAppliedFrame: Codable, Equatable {
+    static let type = "runtime_config_applied"
+
+    var fields: [String]
+    var values: RuntimeAudioParams
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case fields
+        case values
+    }
+
+    init(fields: [String], values: RuntimeAudioParams) {
+        self.fields = fields
+        self.values = values
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        fields = try container.decode([String].self, forKey: .fields)
+        values = try container.decode(RuntimeAudioParams.self, forKey: .values)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(Self.type, forKey: .type)
+        try container.encode(fields, forKey: .fields)
+        try container.encode(values, forKey: .values)
     }
 }
 

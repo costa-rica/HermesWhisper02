@@ -52,6 +52,8 @@ final class VoiceSocket {
     private let session: URLSession
     private let pttMode: Bool
     private let priorSessionID: String?
+    private let intermediaryMode: IntermediaryMode?
+    private let audioParams: RuntimeAudioParams?
 
     private var webSocketTask: URLSessionWebSocketTask?
     private var receiveTask: Task<Void, Never>?
@@ -77,13 +79,17 @@ final class VoiceSocket {
         keychain: KeychainStore = KeychainStore(),
         session: URLSession = .shared,
         priorSessionID: String? = nil,
-        pttMode: Bool = false
+        pttMode: Bool = false,
+        intermediaryMode: IntermediaryMode? = nil,
+        audioParams: RuntimeAudioParams? = nil
     ) {
         self.profile = profile
         self.keychain = keychain
         self.session = session
         self.priorSessionID = priorSessionID
         self.pttMode = pttMode
+        self.intermediaryMode = intermediaryMode
+        self.audioParams = audioParams
 
         var continuation: AsyncStream<VoiceEvent>.Continuation!
         self.eventStream = AsyncStream<VoiceEvent> { streamContinuation in
@@ -125,7 +131,12 @@ final class VoiceSocket {
             await self?.heartbeatLoop()
         }
 
-        try await sendJSON(.clientHello(ClientHelloFrame(sessionID: sessionID, pttMode: pttMode)))
+        try await sendJSON(.clientHello(ClientHelloFrame(
+            sessionID: sessionID,
+            pttMode: pttMode,
+            intermediaryMode: intermediaryMode,
+            audioParams: audioParams
+        )))
     }
 
     func sendJSON(_ frame: ClientFrame) async throws {

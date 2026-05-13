@@ -137,23 +137,23 @@ Commit: `feat(mobile): conversation history drawer (20260513_TODO_MOBILE_UI_HIST
 
 Tasks:
 
-- [ ] Add `Settings/SettingsView.swift` presented from the gear button as a `.sheet`.
-- [ ] Add `Settings/RuntimeSettingsStore.swift`, a UserDefaults wrapper keyed by `profile.id.uuidString`, exposing:
+- [x] Add `Settings/SettingsView.swift` presented from the gear button as a `.sheet`.
+- [x] Add `Settings/RuntimeSettingsStore.swift`, a UserDefaults wrapper keyed by `profile.id.uuidString`, exposing:
   - `intermediaryMode: IntermediaryMode` (deterministic or llm; default llm)
   - `speechRmsThreshold`, `endSilenceSeconds`, `minTurnSeconds`, `maxTurnSeconds`
   - `bargeInRmsThreshold`, `bargeInWindowDuration`, `bargeInConsecutiveWindows`
-- [ ] Settings sections:
-  - [ ] Intermediary routing segmented picker. On change, if WS open, call `VoiceController.sendIntermediaryMode(_:)` (sends `set_intermediary_mode`). Persist always.
-  - [ ] VAD sliders. On commit, call `VoiceController.sendAudioParams(_:)` (sends `set_audio_params`). Persist.
-  - [ ] Barge-in sliders. On change, mutate the live `BargeInDetector.Config` through `VoiceController.updateBargeInConfig(_:)`. Persist.
-  - [ ] Voice interaction mode picker moved from `VoiceView`.
-  - [ ] Logout button calling existing `appEnvironment.logout()`.
-- [ ] On `client_hello`, include the persisted `intermediary_mode` and `audio_params` so the API starts in the right state.
-- [ ] UI copy in Settings should note: "Changes apply at the next turn." (matches V02 protocol semantics.)
+- [x] Settings sections:
+  - [x] Intermediary routing segmented picker. On change, if WS open, call `VoiceController.sendIntermediaryMode(_:)` (sends `set_intermediary_mode`). Persist always.
+  - [x] VAD sliders. On commit, call `VoiceController.sendAudioParams(_:)` (sends `set_audio_params`). Persist.
+  - [x] Barge-in sliders. On change, mutate the live `BargeInDetector.Config` through `VoiceController.updateBargeInConfig(_:)`. Persist.
+  - [x] Voice interaction mode picker moved from `VoiceView`.
+  - [x] Logout button calling existing `appEnvironment.logout()`.
+- [x] On `client_hello`, include the persisted `intermediary_mode` and `audio_params` so the API starts in the right state.
+- [x] UI copy in Settings should note: "Changes apply at the next turn." (matches V02 protocol semantics.)
 
 Checks before checking off:
 
-- [ ] `xcodebuild test` passes.
+- [x] `xcodebuild test` passes.
 - [ ] Manual sim check: flip intermediary mid-conversation; observe `runtime_config_applied`; observe next turn uses the chosen path. Move sliders; observe ack and next-turn behavior.
 
 Commit: `feat(mobile): settings sheet (20260513_TODO_MOBILE_UI_HISTORY_V02 phase 6)`.

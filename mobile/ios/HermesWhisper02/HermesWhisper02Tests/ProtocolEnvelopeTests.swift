@@ -5,7 +5,14 @@ final class ProtocolEnvelopeTests: XCTestCase {
     func testClientHelloEncodesSnakeCaseTypeAndPayload() throws {
         let payload = try ProtocolEnvelope.encode(.clientHello(ClientHelloFrame(
             sessionID: "prior-session",
-            pttMode: false
+            pttMode: false,
+            intermediaryMode: .deterministic,
+            audioParams: RuntimeAudioParams(
+                speechRmsThreshold: 0.004,
+                endSilenceSeconds: 1.2,
+                minTurnSeconds: 0.7,
+                maxTurnSeconds: 12.0
+            )
         )))
 
         XCTAssertTrue(payload.contains("\"type\":\"client_hello\""))
@@ -14,6 +21,23 @@ final class ProtocolEnvelopeTests: XCTestCase {
         XCTAssertTrue(payload.contains("\"downlink_format\":\"pcm16\""))
         XCTAssertTrue(payload.contains("\"sample_rate\":16000"))
         XCTAssertTrue(payload.contains("\"ptt_mode\":false"))
+        XCTAssertTrue(payload.contains("\"intermediary_mode\":\"deterministic\""))
+        XCTAssertTrue(payload.contains("\"speech_rms_threshold\":0.004"))
+        XCTAssertTrue(payload.contains("\"end_silence_seconds\":1.2"))
+    }
+
+    func testRuntimeConfigFramesEncodeSnakeCasePayloads() throws {
+        let modePayload = try ProtocolEnvelope.encode(.setIntermediaryMode(SetIntermediaryModeFrame(mode: .llm)))
+        let audioPayload = try ProtocolEnvelope.encode(.setAudioParams(SetAudioParamsFrame(
+            speechRmsThreshold: 0.005,
+            endSilenceSeconds: 1.4
+        )))
+
+        XCTAssertTrue(modePayload.contains("\"type\":\"set_intermediary_mode\""))
+        XCTAssertTrue(modePayload.contains("\"mode\":\"llm\""))
+        XCTAssertTrue(audioPayload.contains("\"type\":\"set_audio_params\""))
+        XCTAssertTrue(audioPayload.contains("\"speech_rms_threshold\":0.005"))
+        XCTAssertTrue(audioPayload.contains("\"end_silence_seconds\":1.4"))
     }
 
     func testDecodesEveryServerFrameType() throws {
@@ -59,6 +83,13 @@ final class ProtocolEnvelopeTests: XCTestCase {
                     kind: .preparingAudio,
                     text: "Preparing spoken response.",
                     ts: 12.25
+                ))
+            ),
+            (
+                #"{"type":"runtime_config_applied","fields":["speech_rms_threshold"],"values":{"speech_rms_threshold":0.005}}"#,
+                .runtimeConfigApplied(RuntimeConfigAppliedFrame(
+                    fields: ["speech_rms_threshold"],
+                    values: RuntimeAudioParams(speechRmsThreshold: 0.005)
                 ))
             ),
             (
@@ -117,6 +148,10 @@ final class ProtocolEnvelopeTests: XCTestCase {
                 kind: .finished,
                 text: "Hermes finished.",
                 ts: 12.75
+            )),
+            .runtimeConfigApplied(RuntimeConfigAppliedFrame(
+                fields: ["end_silence_seconds"],
+                values: RuntimeAudioParams(endSilenceSeconds: 1.4)
             )),
             .audioChunk(AudioChunkPrelude(
                 turnID: "t1",

@@ -5,6 +5,7 @@ struct VoiceView: View {
 
     @State private var voiceController = VoiceController()
     private let interactionModeStore = VoiceInteractionModeStore()
+    private let runtimeSettingsStore = RuntimeSettingsStore()
     @State private var voiceTask: Task<Void, Never>?
     @State private var audioError: String?
     @State private var logoutError: String?
@@ -12,6 +13,7 @@ struct VoiceView: View {
     @State private var showingHistory = false
     @State private var showingSettings = false
     @State private var interactionMode: VoiceInteractionMode = .continuous
+    @State private var runtimeSettings = RuntimeSettings()
     @State private var isPressingPTT = false
 
     var body: some View {
@@ -35,10 +37,14 @@ struct VoiceView: View {
         .onAppear {
             voiceController.setConversationStore(appEnvironment.conversationStore)
             interactionMode = interactionModeStore.load(profileID: appEnvironment.activeProfile.id)
+            runtimeSettings = runtimeSettingsStore.load(profileID: appEnvironment.activeProfile.id)
+            voiceController.applyRuntimeSettings(runtimeSettings)
         }
         .onChange(of: appEnvironment.activeProfile.id) { _, profileID in
             voiceController.setConversationStore(appEnvironment.conversationStore)
             interactionMode = interactionModeStore.load(profileID: profileID)
+            runtimeSettings = runtimeSettingsStore.load(profileID: profileID)
+            voiceController.applyRuntimeSettings(runtimeSettings)
         }
         .sheet(isPresented: $showingServers) {
             NavigationStack {
@@ -63,10 +69,34 @@ struct VoiceView: View {
         }
         .sheet(isPresented: $showingSettings) {
             NavigationStack {
-                Text("Settings")
-                    .foregroundStyle(.secondary)
-                    .navigationTitle("Settings")
-                    .navigationBarTitleDisplayMode(.inline)
+                SettingsView(
+                    profileID: appEnvironment.activeProfile.id,
+                    interactionMode: $interactionMode,
+                    settingsStore: runtimeSettingsStore,
+                    initialSettings: runtimeSettings,
+                    onSettingsChanged: { settings in
+                        runtimeSettings = settings
+                        voiceController.applyRuntimeSettings(settings)
+                    },
+                    onIntermediaryModeChanged: { mode in
+                        Task {
+                            await voiceController.sendIntermediaryMode(mode)
+                        }
+                    },
+                    onAudioParamsChanged: { params in
+                        Task {
+                            await voiceController.sendAudioParams(params)
+                        }
+                    },
+                    onBargeInChanged: { config in
+                        voiceController.updateBargeInConfig(config)
+                    },
+                    onInteractionModeChanged: { mode in
+                        interactionModeStore.save(mode, profileID: appEnvironment.activeProfile.id)
+                        stopAudioCapture()
+                    },
+                    onLogout: logout
+                )
             }
         }
         .alert("Logout failed", isPresented: logoutFailed) {
@@ -155,17 +185,6 @@ struct VoiceView: View {
             }
 
             HermesActivityView(events: voiceController.hermesActivity)
-
-            Picker("Mode", selection: $interactionMode) {
-                ForEach(VoiceInteractionMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .onChange(of: interactionMode) { _, newMode in
-                interactionModeStore.save(newMode, profileID: appEnvironment.activeProfile.id)
-                stopAudioCapture()
-            }
 
             voiceControl
         }
