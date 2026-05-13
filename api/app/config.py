@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     JWT_SECRET: SecretStr = Field(...)
     TOKEN_TTL_SECONDS: int = 2_592_000
     SESSION_RESUME_WINDOW_SEC: int = 300
+    LONG_RESUME_MAX_MESSAGES: int = 50
 
     EMAIL_HOST: str = "smtp.gmail.com"
     EMAIL_PORT: int = 587

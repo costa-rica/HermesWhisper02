@@ -73,6 +73,13 @@ class VoiceStore:
             return None
         return VoiceSession.model_validate(dict(row))
 
+    async def session_exists(self, session_id: str) -> bool:
+        row = await self.db.fetch_one(
+            "SELECT 1 FROM voice_sessions WHERE id = ?",
+            (session_id,),
+        )
+        return row is not None
+
     async def append_message(self, session_id: str, role: str, content: str) -> VoiceMessage:
         message = VoiceMessage(
             id=str(uuid4()),

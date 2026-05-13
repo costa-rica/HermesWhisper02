@@ -170,7 +170,7 @@ def test_voice_ws_resumes_same_owner_session(tmp_path, monkeypatch) -> None:
     assert second_started["resumed"] is True
 
 
-def test_voice_ws_rejects_foreign_owner_resume_with_fresh_session(tmp_path, monkeypatch) -> None:
+def test_voice_ws_rejects_foreign_owner_resume(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("DB_PATH", str(tmp_path / "test.sqlite"))
     monkeypatch.setenv("NAME_APP", "hermes-whisper-02-api-test")
     monkeypatch.setenv("RUN_ENVIRONMENT", "development")
@@ -205,11 +205,10 @@ def test_voice_ws_rejects_foreign_owner_resume_with_fresh_session(tmp_path, monk
             headers={"Authorization": f"Bearer {second_token}"},
         ) as websocket:
             websocket.send_json(_client_hello(session_id=first_started["session_id"]))
-            second_started = websocket.receive_json()
+            error = websocket.receive_json()
 
-    assert second_started["type"] == "session_started"
-    assert second_started["session_id"] != first_started["session_id"]
-    assert second_started["resumed"] is False
+    assert error["error"]["code"] == "FORBIDDEN"
+    assert error["error"]["status"] == 403
 
 
 def _client_hello(session_id: str | None = None) -> dict:

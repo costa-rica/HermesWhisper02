@@ -155,22 +155,22 @@ Depends on phases 2 and 6.
 
 Tasks:
 
-- [ ] Add `LONG_RESUME_MAX_MESSAGES: int = 50` to `app/config.py` and `api/.env.example`.
-- [ ] In `voice_ws.py`, on `client_hello.session_id`:
-  - [ ] Try in-memory resume first.
-  - [ ] On miss, call `get_session_for_owner(principal.owner_id, session_id)`. On ownership mismatch return `APIError` per docs/ERROR_REQUIREMENTS.md.
-  - [ ] On a verified row, call `list_recent_messages(session_id, LONG_RESUME_MAX_MESSAGES)`, reverse to chronological, and seed a fresh front_llm context. Reuse the stored `conversation_id`.
-  - [ ] Respond with `session_started { resumed: true }` and the original `conversation_id`.
-  - [ ] On total miss, respond with `session_started { resumed: false, created: true }`.
-- [ ] Tests in `tests/test_voice_ws_long_resume.py`:
-  - [ ] Cold resume past 5 minutes returns `resumed: true` with original `conversation_id`.
-  - [ ] Mocked Hermes call after resume sees seeded prior context (assert front_llm receives the rehydrated messages).
-  - [ ] Ownership mismatch returns the documented error.
-  - [ ] Missing session falls back to a new one.
+- [x] Add `LONG_RESUME_MAX_MESSAGES: int = 50` to `app/config.py` and `api/.env.example`.
+- [x] In `voice_ws.py`, on `client_hello.session_id`:
+  - [x] Try in-memory resume first.
+  - [x] On miss, call `get_session_for_owner(principal.owner_id, session_id)`. On ownership mismatch return `APIError` per docs/ERROR_REQUIREMENTS.md.
+  - [x] On a verified row, call `list_recent_messages(session_id, LONG_RESUME_MAX_MESSAGES)`, reverse to chronological, and seed a fresh front_llm context. Reuse the stored `conversation_id`.
+  - [x] Respond with `session_started { resumed: true }` and the original `conversation_id`.
+  - [x] On total miss, respond with `session_started { resumed: false, created: true }`.
+- [x] Tests in `tests/test_voice_ws_long_resume.py`:
+  - [x] Cold resume past 5 minutes returns `resumed: true` with original `conversation_id`.
+  - [x] Mocked Hermes call after resume sees seeded prior context (assert front_llm receives the rehydrated messages).
+  - [x] Ownership mismatch returns the documented error.
+  - [x] Missing session falls back to a new one.
 
 Checks before checking off:
 
-- [ ] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
+- [x] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
 
 Commit: `feat(api): long-gap session resume from DB (20260513_TODO_API_RUNTIME_CONFIG_V02 phase 7)`.
 

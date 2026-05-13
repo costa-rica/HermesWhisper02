@@ -7,10 +7,10 @@ from fastapi import APIRouter, WebSocket
 from loguru import logger
 from starlette.websockets import WebSocketDisconnect
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.db import Database
 from app.errors import APIError, ErrorBody, ErrorEnvelope
-from app.models import User
+from app.models import User, VoiceMessage, VoiceSession
 from app.pipecat_processors.ws_transport_adapter import (
     PassthroughEchoPipeline,
     ProjectWebSocketTransportAdapter,
@@ -40,12 +40,12 @@ async def voice_ws(websocket: WebSocket) -> None:
         settings = get_settings()
         runtime_config = _runtime_config_from_hello(hello)
         store = VoiceStore(Database(settings.DB_PATH))
-        session, resumed = await store.get_or_create_session(
-            user.id,
-            hello.get("session_id"),
-            settings.SESSION_RESUME_WINDOW_SEC,
+        session, resumed, context_messages = await _resolve_voice_session(
+            store,
+            user,
+            hello,
+            settings,
         )
-        context_messages = await store.list_messages(session.id)
         await websocket.send_json(
             {
                 "type": "session_started",
@@ -55,6 +55,7 @@ async def voice_ws(websocket: WebSocket) -> None:
                 "sample_rate": 24_000,
                 "front_llm": (f"{settings.FRONT_LLM_PROVIDER}:{settings.FRONT_LLM_MODEL}"),
                 "resumed": resumed,
+                "created": not resumed,
             }
         )
         await _voice_loop(
@@ -309,6 +310,37 @@ async def _receive_client_hello(websocket: WebSocket) -> dict[str, Any]:
             code="VALIDATION_ERROR", message="Unsupported uplink sample rate", status=400
         )
     return frame
+
+
+async def _resolve_voice_session(
+    store: VoiceStore,
+    user: User,
+    hello: dict[str, Any],
+    settings: Settings,
+) -> tuple[VoiceSession, bool, list[VoiceMessage]]:
+    requested_session_id = hello.get("session_id")
+    if isinstance(requested_session_id, str) and requested_session_id:
+        session = await store.get_session_for_owner(user.id, requested_session_id)
+        if session is not None:
+            await store.touch_session(session.id)
+            recent_messages = await store.list_recent_messages(
+                session.id,
+                settings.LONG_RESUME_MAX_MESSAGES,
+            )
+            return session, True, list(reversed(recent_messages))
+        if await store.session_exists(requested_session_id):
+            raise APIError(
+                code="FORBIDDEN",
+                message="Session does not belong to authenticated user",
+                status=403,
+            )
+
+    session, resumed = await store.get_or_create_session(
+        user.id,
+        None,
+        settings.SESSION_RESUME_WINDOW_SEC,
+    )
+    return session, resumed, []
 
 
 def _runtime_config_from_hello(hello: dict[str, Any]) -> SessionRuntimeConfig:

@@ -71,6 +71,16 @@ async def test_voice_store_get_session_for_owner(tmp_path) -> None:
     assert foreign is None
 
 
+async def test_voice_store_session_exists(tmp_path) -> None:
+    db = Database(tmp_path / "voice.sqlite")
+    await db.bootstrap()
+    store = VoiceStore(db)
+    session, _ = await store.get_or_create_session("owner-1")
+
+    assert await store.session_exists(session.id) is True
+    assert await store.session_exists("missing-session") is False
+
+
 async def test_voice_store_lists_recent_messages_newest_first(tmp_path) -> None:
     db = Database(tmp_path / "voice.sqlite")
     await db.bootstrap()
