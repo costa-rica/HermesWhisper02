@@ -61,6 +61,7 @@ final class VoiceSocket {
     private var sendQueueDepth = 0
     private var currentSessionID: String?
     private var isReconnecting = false
+    private var isServerProcessingTurn = false
     private var droppedFramesDuringReconnect = 0
     private var didCloseIntentionally = false
 
@@ -118,6 +119,7 @@ final class VoiceSocket {
 
         processor.reset()
         pendingPingTimestamp = nil
+        isServerProcessingTurn = false
         heartbeatTask?.cancel()
         heartbeatTask = Task { [weak self] in
             await self?.heartbeatLoop()
@@ -256,6 +258,7 @@ final class VoiceSocket {
             if case .sessionStarted(let started) = frame {
                 currentSessionID = started.sessionID
             }
+            updateServerProcessingState(for: frame)
             if case .pong(let pong) = frame {
                 handlePong(pong)
             }
@@ -282,12 +285,20 @@ final class VoiceSocket {
             if Task.isCancelled {
                 return
             }
+            if isServerProcessingTurn {
+                pendingPingTimestamp = nil
+                continue
+            }
 
             let timestamp = Date().timeIntervalSince1970
             pendingPingTimestamp = timestamp
             do {
                 try await sendJSON(.ping(PingFrame(ts: timestamp)))
                 try await Task.sleep(nanoseconds: Self.heartbeatTimeoutNanoseconds)
+                if isServerProcessingTurn {
+                    pendingPingTimestamp = nil
+                    continue
+                }
                 if pendingPingTimestamp == timestamp {
                     throw SocketError.heartbeatTimedOut
                 }
@@ -307,6 +318,24 @@ final class VoiceSocket {
             return
         }
         pendingPingTimestamp = nil
+    }
+
+    private func updateServerProcessingState(for frame: ServerFrame) {
+        switch frame {
+        case .hermesProgress(let progress):
+            switch progress.kind {
+            case .sentToHermes, .responseStarted, .toolCall, .toolResult:
+                isServerProcessingTurn = true
+            case .finished, .failed:
+                break
+            }
+        case .turnEnd:
+            isServerProcessingTurn = false
+        case .error:
+            isServerProcessingTurn = false
+        default:
+            break
+        }
     }
 
     private func reconnectAfterFailure(_ error: Error) async -> Bool {
