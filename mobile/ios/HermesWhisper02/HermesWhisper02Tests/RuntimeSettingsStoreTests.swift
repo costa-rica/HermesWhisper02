@@ -16,7 +16,7 @@ final class RuntimeSettingsStoreTests: XCTestCase {
         XCTAssertEqual(settings.bargeInConsecutiveWindows, 2)
     }
 
-    func testPersistsSettingsPerProfile() {
+    func testPersistsSettingsGloballyAcrossProfiles() {
         let defaults = makeDefaults()
         let store = RuntimeSettingsStore(defaults: defaults)
         let firstID = UUID()
@@ -35,6 +35,7 @@ final class RuntimeSettingsStoreTests: XCTestCase {
 
         let reloadedStore = RuntimeSettingsStore(defaults: defaults)
         let reloadedSettings = reloadedStore.load(profileID: firstID)
+        let secondProfileSettings = reloadedStore.load(profileID: secondID)
         XCTAssertEqual(reloadedSettings.intermediaryMode, .deterministic)
         XCTAssertEqual(reloadedSettings.speechRmsThreshold, 0.01)
         XCTAssertEqual(reloadedSettings.endSilenceSeconds, 2.0)
@@ -43,7 +44,35 @@ final class RuntimeSettingsStoreTests: XCTestCase {
         XCTAssertEqual(reloadedSettings.bargeInRmsThreshold, 0.04)
         XCTAssertEqual(reloadedSettings.bargeInWindowDuration, 0.08)
         XCTAssertEqual(reloadedSettings.bargeInConsecutiveWindows, 4)
-        XCTAssertEqual(reloadedStore.load(profileID: secondID).intermediaryMode, .llm)
+        XCTAssertEqual(secondProfileSettings, reloadedSettings)
+    }
+
+    func testMigratesExistingProfileScopedSettingsToGlobalSettings() {
+        let defaults = makeDefaults()
+        let profileID = UUID()
+        let secondID = UUID()
+        defaults.set("deterministic", forKey: "runtime.settings.\(profileID.uuidString).intermediaryMode")
+        defaults.set(0.05, forKey: "runtime.settings.\(profileID.uuidString).speechRmsThreshold")
+        defaults.set(2.5, forKey: "runtime.settings.\(profileID.uuidString).endSilenceSeconds")
+        defaults.set(1.2, forKey: "runtime.settings.\(profileID.uuidString).minTurnSeconds")
+        defaults.set(120.0, forKey: "runtime.settings.\(profileID.uuidString).maxTurnSeconds")
+        defaults.set(0.06, forKey: "runtime.settings.\(profileID.uuidString).bargeInRmsThreshold")
+        defaults.set(0.09, forKey: "runtime.settings.\(profileID.uuidString).bargeInWindowDuration")
+        defaults.set(5, forKey: "runtime.settings.\(profileID.uuidString).bargeInConsecutiveWindows")
+
+        let store = RuntimeSettingsStore(defaults: defaults)
+        let migratedSettings = store.load(profileID: profileID)
+        let globalSettings = store.load(profileID: secondID)
+
+        XCTAssertEqual(migratedSettings.intermediaryMode, .deterministic)
+        XCTAssertEqual(migratedSettings.speechRmsThreshold, 0.05)
+        XCTAssertEqual(migratedSettings.endSilenceSeconds, 2.5)
+        XCTAssertEqual(migratedSettings.minTurnSeconds, 1.2)
+        XCTAssertEqual(migratedSettings.maxTurnSeconds, 120.0)
+        XCTAssertEqual(migratedSettings.bargeInRmsThreshold, 0.06)
+        XCTAssertEqual(migratedSettings.bargeInWindowDuration, 0.09)
+        XCTAssertEqual(migratedSettings.bargeInConsecutiveWindows, 5)
+        XCTAssertEqual(globalSettings, migratedSettings)
     }
 
     private func makeDefaults() -> UserDefaults {
