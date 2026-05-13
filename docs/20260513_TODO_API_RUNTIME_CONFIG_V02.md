@@ -178,7 +178,7 @@ Commit: `feat(api): long-gap session resume from DB (20260513_TODO_API_RUNTIME_C
 
 Tasks:
 
-- [ ] Append an Operator notes section with:
+- [x] Append an Operator notes section with:
   - Example payloads for `set_intermediary_mode` and `set_audio_params`.
   - Example `wscat` flow for triggering long-gap resume.
   - Explicit reminder that frames apply at the next turn boundary, not mid-turn.
@@ -212,9 +212,80 @@ Reused:
 - api/app/services/voice_store.py and api/app/db.py (sessions and messages tables)
 - api/app/errors.py (APIError shape)
 
-## Operator notes (placeholder — fill in after phase 5 and 7)
+## Operator notes
 
 - Runtime config frames are read between active turn processing steps. If a client sends `set_intermediary_mode` or `set_audio_params` while the API is processing a turn, the frame is queued by the WebSocket stack and applies on the next read, effectively the next turn boundary.
-- Sending `set_intermediary_mode` mid-conversation: example payload; applied at next turn boundary.
-- Sending `set_audio_params` mid-conversation: example payload; clamped echo behavior.
-- Triggering long-gap resume: reconnect after >5 minutes with prior `session_id`; expect `resumed: true`.
+- Sending `set_intermediary_mode`:
+
+```json
+{ "type": "set_intermediary_mode", "mode": "deterministic" }
+```
+
+Expected ack:
+
+```json
+{
+  "type": "runtime_config_applied",
+  "fields": ["intermediary_mode"],
+  "values": { "intermediary_mode": "deterministic" }
+}
+```
+
+- Sending `set_audio_params`:
+
+```json
+{
+  "type": "set_audio_params",
+  "speech_rms_threshold": 0.004,
+  "end_silence_seconds": 1.4,
+  "min_turn_seconds": 0.8,
+  "max_turn_seconds": 10.0
+}
+```
+
+Expected ack shape. Values may differ if the server clamps them:
+
+```json
+{
+  "type": "runtime_config_applied",
+  "fields": ["speech_rms_threshold", "end_silence_seconds", "min_turn_seconds", "max_turn_seconds"],
+  "values": {
+    "speech_rms_threshold": 0.004,
+    "end_silence_seconds": 1.4,
+    "min_turn_seconds": 0.8,
+    "max_turn_seconds": 10.0
+  }
+}
+```
+
+- Triggering long-gap resume with `wscat`:
+
+```bash
+wscat -c "wss://api.hermes-whisper.dashanddata.com/ws/voice" \
+  -H "Authorization: Bearer $MOBILE_TOKEN"
+```
+
+Then send:
+
+```json
+{
+  "type": "client_hello",
+  "protocol_version": 1,
+  "session_id": "previous-session-id",
+  "downlink_format": "pcm16",
+  "sample_rate": 16000,
+  "ptt_mode": false
+}
+```
+
+Expected response for an owned stored session, including sessions older than the short resume window:
+
+```json
+{
+  "type": "session_started",
+  "session_id": "previous-session-id",
+  "conversation_id": "original-hermes-conversation-id",
+  "resumed": true,
+  "created": false
+}
+```
