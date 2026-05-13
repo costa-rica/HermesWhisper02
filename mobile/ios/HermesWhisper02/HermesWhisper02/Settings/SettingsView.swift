@@ -13,6 +13,7 @@ struct SettingsView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var settings: RuntimeSettings
+    @State private var helpTopic: SettingsHelpTopic?
 
     init(
         profileID: UUID,
@@ -41,11 +42,13 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section("Intermediary routing") {
+                settingsParameterHeader(topic: .intermediaryMode)
                 Picker("Mode", selection: intermediaryModeBinding) {
                     ForEach(IntermediaryMode.allCases) { mode in
                         Text(mode.label).tag(mode)
                     }
                 }
+                .labelsHidden()
                 .pickerStyle(.segmented)
                 Text("Changes apply at the next turn.")
                     .font(.caption)
@@ -54,28 +57,28 @@ struct SettingsView: View {
 
             Section("Server VAD") {
                 settingsSlider(
-                    title: "Speech RMS",
+                    topic: .speechRmsThreshold,
                     value: speechRmsThresholdBinding,
                     range: 0.001...0.05,
                     format: .number.precision(.fractionLength(3)),
                     onCommit: sendAudioParams
                 )
                 settingsSlider(
-                    title: "End silence",
+                    topic: .endSilenceSeconds,
                     value: endSilenceSecondsBinding,
                     range: 0.3...3.0,
                     format: .number.precision(.fractionLength(1)),
                     onCommit: sendAudioParams
                 )
                 settingsSlider(
-                    title: "Minimum turn",
+                    topic: .minTurnSeconds,
                     value: minTurnSecondsBinding,
                     range: 0.2...2.0,
                     format: .number.precision(.fractionLength(1)),
                     onCommit: sendAudioParams
                 )
                 settingsSlider(
-                    title: "Maximum turn",
+                    topic: .maxTurnSeconds,
                     value: maxTurnSecondsBinding,
                     range: 5.0...30.0,
                     format: .number.precision(.fractionLength(0)),
@@ -85,32 +88,38 @@ struct SettingsView: View {
 
             Section("Barge-in") {
                 settingsSlider(
-                    title: "RMS threshold",
+                    topic: .bargeInRmsThreshold,
                     value: bargeInRmsThresholdBinding,
                     range: 0.01...0.10,
                     format: .number.precision(.fractionLength(3)),
                     onCommit: sendBargeInConfig
                 )
                 settingsSlider(
-                    title: "Window",
+                    topic: .bargeInWindowDuration,
                     value: bargeInWindowDurationBinding,
                     range: 0.01...0.20,
                     format: .number.precision(.fractionLength(2)),
                     onCommit: sendBargeInConfig
                 )
                 Stepper(
-                    "Consecutive windows: \(settings.bargeInConsecutiveWindows)",
                     value: bargeInConsecutiveWindowsBinding,
                     in: 1...5
-                )
+                ) {
+                    settingsParameterHeader(
+                        topic: .bargeInConsecutiveWindows,
+                        value: "\(settings.bargeInConsecutiveWindows)"
+                    )
+                }
             }
 
             Section("Voice") {
+                settingsParameterHeader(topic: .voiceInteraction)
                 Picker("Interaction", selection: $interactionMode) {
                     ForEach(VoiceInteractionMode.allCases) { mode in
                         Text(mode.label).tag(mode)
                     }
                 }
+                .labelsHidden()
                 .pickerStyle(.segmented)
                 .onChange(of: interactionMode) { _, mode in
                     onInteractionModeChanged(mode)
@@ -123,6 +132,13 @@ struct SettingsView: View {
                     onLogout()
                 }
             }
+        }
+        .alert(item: $helpTopic) { topic in
+            Alert(
+                title: Text(topic.title),
+                message: Text(topic.description),
+                dismissButton: .default(Text("OK"))
+            )
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
@@ -182,23 +198,40 @@ struct SettingsView: View {
     }
 
     private func settingsSlider<F: FormatStyle>(
-        title: String,
+        topic: SettingsHelpTopic,
         value: Binding<Double>,
         range: ClosedRange<Double>,
         format: F,
         onCommit: @escaping () -> Void
     ) -> some View where F.FormatInput == Double, F.FormatOutput == String {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(title)
-                Spacer()
-                Text(value.wrappedValue, format: format)
-                    .foregroundStyle(.secondary)
-            }
+            settingsParameterHeader(topic: topic, value: value.wrappedValue.formatted(format))
             Slider(value: value, in: range) { editing in
                 if !editing {
                     onCommit()
                 }
+            }
+        }
+    }
+
+    private func settingsParameterHeader(topic: SettingsHelpTopic, value: String? = nil) -> some View {
+        HStack(spacing: 8) {
+            Button {
+                helpTopic = topic
+            } label: {
+                HStack(spacing: 6) {
+                    Text(topic.title)
+                    Image(systemName: "info.circle")
+                        .imageScale(.small)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("About \(topic.title)")
+            Spacer()
+            if let value {
+                Text(value)
+                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -214,5 +247,65 @@ struct SettingsView: View {
 
     private func sendBargeInConfig() {
         onBargeInChanged(settings.bargeInConfig)
+    }
+}
+
+private enum SettingsHelpTopic: String, Identifiable {
+    case intermediaryMode
+    case speechRmsThreshold
+    case endSilenceSeconds
+    case minTurnSeconds
+    case maxTurnSeconds
+    case bargeInRmsThreshold
+    case bargeInWindowDuration
+    case bargeInConsecutiveWindows
+    case voiceInteraction
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .intermediaryMode:
+            return "Mode"
+        case .speechRmsThreshold:
+            return "Speech RMS"
+        case .endSilenceSeconds:
+            return "End silence"
+        case .minTurnSeconds:
+            return "Minimum turn"
+        case .maxTurnSeconds:
+            return "Maximum turn"
+        case .bargeInRmsThreshold:
+            return "RMS threshold"
+        case .bargeInWindowDuration:
+            return "Window"
+        case .bargeInConsecutiveWindows:
+            return "Consecutive windows"
+        case .voiceInteraction:
+            return "Interaction"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .intermediaryMode:
+            return "Controls how the mobile voice request is routed before Hermes answers. Changes apply on the next turn."
+        case .speechRmsThreshold:
+            return "Server-side speech energy needed to start a turn. Lower values hear quieter speech; higher values ignore more background noise."
+        case .endSilenceSeconds:
+            return "How long the server waits after speech becomes quiet before it sends the turn to Hermes."
+        case .minTurnSeconds:
+            return "The shortest spoken segment accepted as a turn. Raise it to reduce accidental tiny turns; lower it for quicker short requests."
+        case .maxTurnSeconds:
+            return "The longest continuous segment collected before the server forces the turn to end and sends it."
+        case .bargeInRmsThreshold:
+            return "Local microphone energy needed to interrupt assistant playback. Lower values interrupt more easily; higher values require louder speech."
+        case .bargeInWindowDuration:
+            return "How much microphone audio is measured at a time for barge-in. Shorter windows react faster; longer windows are steadier."
+        case .bargeInConsecutiveWindows:
+            return "How many loud windows must happen in a row before playback stops. Higher values reduce false interruptions."
+        case .voiceInteraction:
+            return "Continuous keeps listening until you stop voice. Push to talk listens only while the talk control is active."
+        }
     }
 }
