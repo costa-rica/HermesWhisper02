@@ -43,6 +43,49 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertTrue(environment.isAuthenticated)
     }
 
+    func testStartupRestoresPersistedActiveProfile() throws {
+        let defaults = makeDefaults()
+        let first = makeProfile(displayName: "first")
+        let second = makeProfile(displayName: "second")
+        let registryStore = try makeRegistryStore()
+        try registryStore.save([first, second])
+        let initialEnvironment = AppEnvironment(
+            activeProfile: first,
+            keychain: KeychainStore(keychain: AppEnvironmentKeychainAccess()),
+            voiceController: SpyVoiceController(),
+            serverRegistryStore: registryStore,
+            defaults: defaults
+        )
+        initialEnvironment.switchActiveProfile(second)
+
+        let restoredEnvironment = AppEnvironment(
+            keychain: KeychainStore(keychain: AppEnvironmentKeychainAccess()),
+            voiceController: SpyVoiceController(),
+            serverRegistryStore: registryStore,
+            defaults: defaults
+        )
+
+        XCTAssertEqual(restoredEnvironment.activeProfile, second)
+        XCTAssertEqual(restoredEnvironment.conversationStore?.serverProfileID, second.id)
+    }
+
+    func testStartupFallsBackToFirstRegistryProfileWhenSelectionIsMissing() throws {
+        let first = makeProfile(displayName: "first")
+        let second = makeProfile(displayName: "second")
+        let registryStore = try makeRegistryStore()
+        try registryStore.save([first, second])
+
+        let environment = AppEnvironment(
+            keychain: KeychainStore(keychain: AppEnvironmentKeychainAccess()),
+            voiceController: SpyVoiceController(),
+            serverRegistryStore: registryStore,
+            defaults: makeDefaults()
+        )
+
+        XCTAssertEqual(environment.activeProfile, first)
+        XCTAssertEqual(environment.conversationStore?.serverProfileID, first.id)
+    }
+
     private func makeProfile(displayName: String) -> ServerProfile {
         ServerProfile(
             id: UUID(),
@@ -58,6 +101,20 @@ final class AppEnvironmentTests: XCTestCase {
         expiresAt: Date = Date(timeIntervalSince1970: 1_800_000_000)
     ) -> Credentials {
         Credentials(token: token, expiresAt: expiresAt, email: "nrodrig1@gmail.com")
+    }
+
+    private func makeDefaults() -> UserDefaults {
+        let suiteName = "AppEnvironmentTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return defaults
+    }
+
+    private func makeRegistryStore() throws -> ServerRegistryStore {
+        let registryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            .appendingPathComponent("server_registry.json", isDirectory: false)
+        return try ServerRegistryStore(registryURL: registryURL)
     }
 }
 
