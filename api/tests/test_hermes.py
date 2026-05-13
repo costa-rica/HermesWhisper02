@@ -5,6 +5,7 @@ from app.services.hermes import (
     SpeakableDelta,
     _stream_live_hermes_events,
     _stream_live_hermes_text,
+    collect_hermes_text_with_progress,
 )
 
 
@@ -80,6 +81,11 @@ async def test_live_hermes_stream_surfaces_tool_progress() -> None:
 
     assert events == [
         ProgressEvent(
+            kind="response_started",
+            text="Hermes accepted the request.",
+            raw={"status": 200},
+        ),
+        ProgressEvent(
             kind="tool_call",
             text="search_documents",
             raw={
@@ -96,6 +102,33 @@ async def test_live_hermes_stream_surfaces_tool_progress() -> None:
             },
         ),
         SpeakableDelta("Done."),
+    ]
+
+
+async def test_collect_hermes_text_reports_lifecycle_progress(monkeypatch) -> None:
+    events = []
+
+    async def handle_progress(event: ProgressEvent) -> None:
+        events.append(event.kind)
+
+    monkeypatch.setenv("HERMES_MOCK", "true")
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+
+    answer = await collect_hermes_text_with_progress(
+        "tell me a story",
+        "conversation-1",
+        progress_handler=handle_progress,
+    )
+
+    assert "Hermes mock response" in answer
+    assert events == [
+        "sent_to_hermes",
+        "response_started",
+        "tool_call",
+        "tool_result",
+        "finished",
     ]
 
 

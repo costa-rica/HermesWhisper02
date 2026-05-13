@@ -48,11 +48,11 @@ final class ProtocolEnvelopeTests: XCTestCase {
                 .assistantState(AssistantStateFrame(state: .answer))
             ),
             (
-                #"{"type":"hermes_progress","turn_id":"t1","kind":"tool_call","text":"Searching documents","ts":12.25}"#,
+                #"{"type":"hermes_progress","turn_id":"t1","kind":"response_started","text":"Hermes accepted the request.","ts":12.25}"#,
                 .hermesProgress(HermesProgressFrame(
                     turnID: "t1",
-                    kind: .toolCall,
-                    text: "Searching documents",
+                    kind: .responseStarted,
+                    text: "Hermes accepted the request.",
                     ts: 12.25
                 ))
             ),
@@ -107,8 +107,8 @@ final class ProtocolEnvelopeTests: XCTestCase {
             .assistantState(AssistantStateFrame(state: .answer)),
             .hermesProgress(HermesProgressFrame(
                 turnID: "t1",
-                kind: .toolResult,
-                text: "Found 3 documents",
+                kind: .finished,
+                text: "Hermes finished.",
                 ts: 12.75
             )),
             .audioChunk(AudioChunkPrelude(

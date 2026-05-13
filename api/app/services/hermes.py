@@ -36,6 +36,11 @@ async def stream_hermes_events(query: str, conversation_id: str) -> AsyncIterato
     if settings.HERMES_MOCK:
         events: tuple[HermesEvent, ...] = (
             ProgressEvent(
+                kind="response_started",
+                text="Hermes accepted the request.",
+                raw={"mock": True},
+            ),
+            ProgressEvent(
                 kind="tool_call",
                 text="Mock Hermes started a tool call.",
                 raw={"mock": True},
@@ -86,7 +91,7 @@ async def _stream_live_hermes_events(
     model: str,
     api_key: str | None,
     client: httpx.AsyncClient,
-) -> AsyncIterator[str]:
+) -> AsyncIterator[HermesEvent]:
     normalized_path = chat_path if chat_path.startswith("/") else f"/{chat_path}"
     url = f"{base_url.rstrip('/')}{normalized_path}"
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
@@ -106,6 +111,11 @@ async def _stream_live_hermes_events(
             url,
             response.status_code,
             response.headers.get("content-type", ""),
+        )
+        yield ProgressEvent(
+            kind="response_started",
+            text="Hermes accepted the request.",
+            raw={"status": response.status_code},
         )
         if response.is_error:
             body = (await response.aread()).decode(errors="replace")[:500]
@@ -195,14 +205,47 @@ async def collect_hermes_text_with_progress(
 ) -> str:
     start = asyncio.get_running_loop().time()
     chunks: list[str] = []
-    async for event in stream_hermes_events(query, conversation_id):
-        if isinstance(event, SpeakableDelta):
-            chunks.append(event.text)
-        elif progress_handler is not None:
-            await progress_handler(event)
-    elapsed_ms = (asyncio.get_running_loop().time() - start) * 1000
-    logger.info("conversation_id={} hermes_round_trip_ms={:.2f}", conversation_id, elapsed_ms)
-    return "".join(chunks)
+    await _emit_progress(
+        progress_handler,
+        ProgressEvent(
+            kind="sent_to_hermes",
+            text="Sent request to Hermes.",
+            raw={"conversation_id": conversation_id},
+        ),
+    )
+    try:
+        async for event in stream_hermes_events(query, conversation_id):
+            if isinstance(event, SpeakableDelta):
+                chunks.append(event.text)
+            else:
+                await _emit_progress(progress_handler, event)
+        await _emit_progress(
+            progress_handler,
+            ProgressEvent(
+                kind="finished",
+                text="Hermes finished.",
+                raw={"conversation_id": conversation_id},
+            ),
+        )
+        return "".join(chunks)
+    except Exception as exc:
+        await _emit_progress(
+            progress_handler,
+            ProgressEvent(
+                kind="failed",
+                text="Hermes failed before returning an answer.",
+                raw={"error_type": type(exc).__name__, "error": str(exc)},
+            ),
+        )
+        raise
+    finally:
+        elapsed_ms = (asyncio.get_running_loop().time() - start) * 1000
+        logger.info("conversation_id={} hermes_round_trip_ms={:.2f}", conversation_id, elapsed_ms)
+
+
+async def _emit_progress(progress_handler: Any | None, event: ProgressEvent) -> None:
+    if progress_handler is not None:
+        await progress_handler(event)
 
 
 def _extract_progress_event(event_name: str | None, payload: Any) -> ProgressEvent | None:

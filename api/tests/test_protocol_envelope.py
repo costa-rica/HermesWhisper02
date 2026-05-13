@@ -54,7 +54,13 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
 
     assert started["type"] == "session_started"
     assert started["resumed"] is False
-    assert [frame["kind"] for frame in progress_frames] == ["tool_call", "tool_result"]
+    assert [frame["kind"] for frame in progress_frames] == [
+        "sent_to_hermes",
+        "response_started",
+        "tool_call",
+        "tool_result",
+        "finished",
+    ]
     assert transcript["type"] == "transcript"
     assert ack_state == {"type": "assistant_state", "state": "ack"}
     assert prelude["type"] == "audio_chunk"

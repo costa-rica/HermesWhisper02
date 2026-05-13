@@ -438,8 +438,12 @@ struct AssistantStateFrame: Codable, Equatable {
 }
 
 enum HermesProgressKind: String, Codable, Equatable {
+    case sentToHermes = "sent_to_hermes"
+    case responseStarted = "response_started"
     case toolCall = "tool_call"
     case toolResult = "tool_result"
+    case finished
+    case failed
 }
 
 struct HermesProgressFrame: Codable, Equatable {

@@ -225,7 +225,7 @@ private struct HermesActivityView: View {
             .foregroundStyle(.secondary)
 
             if events.isEmpty {
-                Text("No Hermes tool activity yet.")
+                Text("No Hermes activity yet.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -259,7 +259,7 @@ private struct HermesActivityRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            Image(systemName: event.kind == .toolCall ? "wrench.and.screwdriver" : "checkmark.circle")
+            Image(systemName: iconName)
                 .frame(width: 18)
             Text(event.text)
                 .font(.caption)
@@ -267,6 +267,23 @@ private struct HermesActivityRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .foregroundStyle(.primary)
+    }
+
+    private var iconName: String {
+        switch event.kind {
+        case .sentToHermes:
+            "paperplane"
+        case .responseStarted:
+            "hourglass"
+        case .toolCall:
+            "wrench.and.screwdriver"
+        case .toolResult:
+            "checkmark.circle"
+        case .finished:
+            "flag.checkered"
+        case .failed:
+            "exclamationmark.triangle"
+        }
     }
 }
 
