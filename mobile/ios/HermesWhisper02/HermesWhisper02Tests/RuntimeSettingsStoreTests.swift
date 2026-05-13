@@ -27,15 +27,23 @@ final class RuntimeSettingsStoreTests: XCTestCase {
             speechRmsThreshold: 0.01,
             endSilenceSeconds: 2.0,
             minTurnSeconds: 1.0,
-            maxTurnSeconds: 12.0,
+            maxTurnSeconds: 180.0,
             bargeInRmsThreshold: 0.04,
             bargeInWindowDuration: 0.08,
             bargeInConsecutiveWindows: 4
         ), profileID: firstID)
 
-        XCTAssertEqual(store.load(profileID: firstID).intermediaryMode, .deterministic)
-        XCTAssertEqual(store.load(profileID: firstID).bargeInConsecutiveWindows, 4)
-        XCTAssertEqual(store.load(profileID: secondID).intermediaryMode, .llm)
+        let reloadedStore = RuntimeSettingsStore(defaults: defaults)
+        let reloadedSettings = reloadedStore.load(profileID: firstID)
+        XCTAssertEqual(reloadedSettings.intermediaryMode, .deterministic)
+        XCTAssertEqual(reloadedSettings.speechRmsThreshold, 0.01)
+        XCTAssertEqual(reloadedSettings.endSilenceSeconds, 2.0)
+        XCTAssertEqual(reloadedSettings.minTurnSeconds, 1.0)
+        XCTAssertEqual(reloadedSettings.maxTurnSeconds, 180.0)
+        XCTAssertEqual(reloadedSettings.bargeInRmsThreshold, 0.04)
+        XCTAssertEqual(reloadedSettings.bargeInWindowDuration, 0.08)
+        XCTAssertEqual(reloadedSettings.bargeInConsecutiveWindows, 4)
+        XCTAssertEqual(reloadedStore.load(profileID: secondID).intermediaryMode, .llm)
     }
 
     private func makeDefaults() -> UserDefaults {

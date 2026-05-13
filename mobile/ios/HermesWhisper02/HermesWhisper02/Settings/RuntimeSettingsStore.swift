@@ -68,6 +68,7 @@ struct RuntimeSettingsStore {
             profileID: profileID,
             name: "bargeInConsecutiveWindows"
         ))
+        defaults.synchronize()
     }
 
     private func double(_ profileID: UUID, _ name: String, _ defaultValue: Double) -> Double {
