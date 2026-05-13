@@ -39,6 +39,8 @@ targets:
     scheme:
       testTargets:
         - HermesWhisper02Tests
+    dependencies:
+      - sdk: libsqlite3.tbd
   HermesWhisper02Tests:
     type: bundle.unit-test
     platform: iOS

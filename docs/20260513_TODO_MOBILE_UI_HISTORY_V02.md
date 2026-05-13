@@ -25,10 +25,10 @@ Conventions:
 
 Tasks:
 
-- [ ] Add group `mobile/ios/HermesWhisper02/HermesWhisper02/Conversation/`.
-- [ ] Add `Conversation/ConversationModels.swift` with `ConversationSession` and `ConversationMessage` mirroring the V02 schema.
-- [ ] Add `Conversation/ConversationStore.swift` using the SQLite3 C API. DB path: `Application Support/HermesWhisper02/conversations/<server_profile_id>.sqlite`. Create tables on first open.
-- [ ] Public API:
+- [x] Add group `mobile/ios/HermesWhisper02/HermesWhisper02/Conversation/`.
+- [x] Add `Conversation/ConversationModels.swift` with `ConversationSession` and `ConversationMessage` mirroring the V02 schema.
+- [x] Add `Conversation/ConversationStore.swift` using the SQLite3 C API. DB path: `Application Support/HermesWhisper02/conversations/<server_profile_id>.sqlite`. Create tables on first open.
+- [x] Public API:
   - `upsertSession(id: String, hermesConversationID: String, title: String?) throws -> ConversationSession`
   - `appendMessage(sessionID:, turnID:, role:, text:, final:, metadata:) throws -> ConversationMessage`
   - `listSessions(includeArchived:) throws -> [ConversationSession]`
@@ -36,12 +36,12 @@ Tasks:
   - `deleteSession(sessionID:) throws`
   - `updateSessionPreview(sessionID:, preview:, lastUpdated:) throws`
   - A `@Published` change signal on the store wrapper for reactive UI reloads.
-- [ ] Update project.yml to include the new group; run `xcodegen generate`.
-- [ ] Unit tests: insert/list ordering, message ordering, per-server file isolation, upsert idempotency, delete.
+- [x] Update project.yml to include the new group; run `xcodegen generate`.
+- [x] Unit tests: insert/list ordering, message ordering, per-server file isolation, upsert idempotency, delete.
 
 Checks before checking off:
 
-- [ ] `xcodebuild test -project HermesWhisper02.xcodeproj -scheme HermesWhisper02 -destination 'platform=iOS Simulator,name=iPhone 17'` passes.
+- [x] `xcodebuild test -project HermesWhisper02.xcodeproj -scheme HermesWhisper02 -destination 'platform=iOS Simulator,name=iPhone 17'` passes.
 
 Commit: `feat(mobile): local conversation store (20260513_TODO_MOBILE_UI_HISTORY_V02 phase 1)`.
 
