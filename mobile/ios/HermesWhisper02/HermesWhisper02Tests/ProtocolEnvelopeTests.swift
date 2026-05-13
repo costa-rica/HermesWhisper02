@@ -20,7 +20,7 @@ final class ProtocolEnvelopeTests: XCTestCase {
         let cases: [(String, ServerFrame)] = [
             (
                 """
-                {"type":"session_started","session_id":"s1","conversation_id":"c1","downlink_format":"pcm16","sample_rate":24000,"front_llm":"openai:gpt-4o-mini","resumed":false}
+                {"type":"session_started","session_id":"s1","conversation_id":"c1","downlink_format":"pcm16","sample_rate":24000,"front_llm":"openai:gpt-4o-mini","resumed":false,"created":true}
                 """,
                 .sessionStarted(SessionStartedFrame(
                     sessionID: "s1",
@@ -28,7 +28,8 @@ final class ProtocolEnvelopeTests: XCTestCase {
                     downlinkFormat: .pcm16,
                     sampleRate: 24_000,
                     frontLLM: "openai:gpt-4o-mini",
-                    resumed: false
+                    resumed: false,
+                    created: true
                 ))
             ),
             (
@@ -42,6 +43,10 @@ final class ProtocolEnvelopeTests: XCTestCase {
             (
                 #"{"type":"transcript","turn_id":"t1","text":"hello","is_final":true}"#,
                 .transcript(TranscriptFrame(turnID: "t1", text: "hello", isFinal: true))
+            ),
+            (
+                #"{"type":"assistant_text","turn_id":"t1","text":"hi there","final":true,"ts":12.75}"#,
+                .assistantText(AssistantTextFrame(turnID: "t1", text: "hi there", final: true, ts: 12.75))
             ),
             (
                 #"{"type":"assistant_state","state":"answer"}"#,
@@ -99,11 +104,13 @@ final class ProtocolEnvelopeTests: XCTestCase {
                 downlinkFormat: .pcm16,
                 sampleRate: 24_000,
                 frontLLM: "openai:gpt-4o-mini",
-                resumed: true
+                resumed: true,
+                created: false
             )),
             .userStartedSpeaking(SpeechBoundaryFrame(type: SpeechBoundaryFrame.startedType, ts: 12.5)),
             .userStoppedSpeaking(SpeechBoundaryFrame(type: SpeechBoundaryFrame.stoppedType, ts: 13.5)),
             .transcript(TranscriptFrame(turnID: "t1", text: "hello", isFinal: true)),
+            .assistantText(AssistantTextFrame(turnID: "t1", text: "hi there", final: true, ts: 12.75)),
             .assistantState(AssistantStateFrame(state: .answer)),
             .hermesProgress(HermesProgressFrame(
                 turnID: "t1",

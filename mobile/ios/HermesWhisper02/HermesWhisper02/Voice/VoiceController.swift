@@ -7,14 +7,22 @@ final class VoiceController: VoiceDisconnecting {
         case alreadyRunning
     }
 
+    private struct PendingTurn {
+        var userText: String?
+        var assistantText: String?
+    }
+
     private let keychain: KeychainStore
     private let audioCapture: AudioCapture
     private let audioPlayer: AudioPlayer
+    private var conversationStore: ConversationStore?
     private var bargeInDetector = BargeInDetector()
     private var socket: VoiceSocket?
     private var audioTask: Task<Void, Never>?
     private var eventTask: Task<Void, Never>?
     private var activityTurnID: String?
+    private var activeConversationSessionID: String?
+    private var pendingTurns: [String: PendingTurn] = [:]
 
     var isRunning = false
     var isConnecting = false
@@ -29,11 +37,19 @@ final class VoiceController: VoiceDisconnecting {
     init(
         keychain: KeychainStore = KeychainStore(),
         audioCapture: AudioCapture = AudioCapture(),
-        audioPlayer: AudioPlayer = AudioPlayer()
+        audioPlayer: AudioPlayer = AudioPlayer(),
+        conversationStore: ConversationStore? = nil
     ) {
         self.keychain = keychain
         self.audioCapture = audioCapture
         self.audioPlayer = audioPlayer
+        self.conversationStore = conversationStore
+    }
+
+    func setConversationStore(_ conversationStore: ConversationStore?) {
+        self.conversationStore = conversationStore
+        activeConversationSessionID = nil
+        pendingTurns.removeAll()
     }
 
     func start(profile: ServerProfile, pttMode: Bool = false) async throws {
@@ -125,6 +141,7 @@ final class VoiceController: VoiceDisconnecting {
         assistantState = .idle
         hermesActivity = []
         activityTurnID = nil
+        pendingTurns.removeAll()
     }
 
     private func handle(_ event: VoiceSocket.VoiceEvent) async {
@@ -156,11 +173,13 @@ final class VoiceController: VoiceDisconnecting {
         }
     }
 
-    private func handle(_ frame: ServerFrame) async {
+    func handle(_ frame: ServerFrame) async {
         switch frame {
         case .sessionStarted(let started):
             let previousSessionID = sessionID
             sessionID = started.sessionID
+            activeConversationSessionID = started.sessionID
+            upsertSession(started)
             if previousSessionID != nil && !started.resumed {
                 statusMessage = "Reconnected; previous turn lost."
             } else if started.resumed {
@@ -178,6 +197,18 @@ final class VoiceController: VoiceDisconnecting {
                 activityTurnID = transcript.turnID
                 hermesActivity = []
             }
+            if transcript.isFinal {
+                updatePendingTurn(transcript.turnID) { pending in
+                    pending.userText = transcript.text
+                }
+            }
+        case .assistantText(let assistantText):
+            guard assistantText.final else {
+                break
+            }
+            updatePendingTurn(assistantText.turnID) { pending in
+                pending.assistantText = assistantText.text
+            }
         case .assistantState(let state):
             assistantState = state.state
         case .hermesProgress(let progress):
@@ -194,12 +225,71 @@ final class VoiceController: VoiceDisconnecting {
             if turnEnd.canceled == true {
                 assistantState = .idle
                 await audioPlayer.flushAndStop()
+                // Canceled turns are dropped as a pair so local history mirrors completed exchanges only.
+                pendingTurns[turnEnd.turnID] = nil
+            } else {
+                commitPendingTurn(turnEnd.turnID)
             }
         case .error(let envelope):
             errorMessage = envelope.error.message
             AppLog.voice.error("voice_server_error code=\(envelope.error.code, privacy: .public) message=\(envelope.error.message, privacy: .public)")
         default:
             break
+        }
+    }
+
+    private func upsertSession(_ started: SessionStartedFrame) {
+        do {
+            try conversationStore?.upsertSession(
+                id: started.sessionID,
+                hermesConversationID: started.conversationID,
+                title: nil
+            )
+        } catch {
+            errorMessage = "Unable to save conversation session."
+            AppLog.voice.error("voice_conversation_session_save_failed error=\(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    private func updatePendingTurn(_ turnID: String, body: (inout PendingTurn) -> Void) {
+        var pending = pendingTurns[turnID, default: PendingTurn()]
+        body(&pending)
+        pendingTurns[turnID] = pending
+    }
+
+    private func commitPendingTurn(_ turnID: String) {
+        guard let sessionID = activeConversationSessionID,
+              let pending = pendingTurns.removeValue(forKey: turnID) else {
+            return
+        }
+
+        do {
+            if let userText = pending.userText?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !userText.isEmpty {
+                try conversationStore?.appendMessage(
+                    sessionID: sessionID,
+                    turnID: turnID,
+                    role: .user,
+                    text: userText,
+                    final: true,
+                    metadata: "{}"
+                )
+            }
+
+            if let assistantText = pending.assistantText?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !assistantText.isEmpty {
+                try conversationStore?.appendMessage(
+                    sessionID: sessionID,
+                    turnID: turnID,
+                    role: .assistant,
+                    text: assistantText,
+                    final: true,
+                    metadata: "{}"
+                )
+            }
+        } catch {
+            errorMessage = "Unable to save conversation turn."
+            AppLog.voice.error("voice_conversation_turn_save_failed turn_id=\(turnID, privacy: .public) error=\(error.localizedDescription, privacy: .public)")
         }
     }
 

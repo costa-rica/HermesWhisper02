@@ -217,6 +217,7 @@ enum ServerFrame: Codable, Equatable {
     case userStartedSpeaking(SpeechBoundaryFrame)
     case userStoppedSpeaking(SpeechBoundaryFrame)
     case transcript(TranscriptFrame)
+    case assistantText(AssistantTextFrame)
     case assistantState(AssistantStateFrame)
     case hermesProgress(HermesProgressFrame)
     case audioChunk(AudioChunkPrelude)
@@ -246,6 +247,8 @@ enum ServerFrame: Codable, Equatable {
             self = .userStoppedSpeaking(try SpeechBoundaryFrame(from: decoder))
         case TranscriptFrame.type:
             self = .transcript(try TranscriptFrame(from: decoder))
+        case AssistantTextFrame.type:
+            self = .assistantText(try AssistantTextFrame(from: decoder))
         case AssistantStateFrame.type:
             self = .assistantState(try AssistantStateFrame(from: decoder))
         case HermesProgressFrame.type:
@@ -270,6 +273,8 @@ enum ServerFrame: Codable, Equatable {
         case .userStoppedSpeaking(let frame):
             try frame.encode(to: encoder)
         case .transcript(let frame):
+            try frame.encode(to: encoder)
+        case .assistantText(let frame):
             try frame.encode(to: encoder)
         case .assistantState(let frame):
             try frame.encode(to: encoder)
@@ -296,6 +301,7 @@ struct SessionStartedFrame: Codable, Equatable {
     var sampleRate: Int
     var frontLLM: String
     var resumed: Bool
+    var created: Bool?
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -305,6 +311,7 @@ struct SessionStartedFrame: Codable, Equatable {
         case sampleRate
         case frontLLM = "frontLlm"
         case resumed
+        case created
     }
 
     init(
@@ -313,7 +320,8 @@ struct SessionStartedFrame: Codable, Equatable {
         downlinkFormat: AudioFormat,
         sampleRate: Int,
         frontLLM: String,
-        resumed: Bool
+        resumed: Bool,
+        created: Bool? = nil
     ) {
         self.sessionID = sessionID
         self.conversationID = conversationID
@@ -321,6 +329,7 @@ struct SessionStartedFrame: Codable, Equatable {
         self.sampleRate = sampleRate
         self.frontLLM = frontLLM
         self.resumed = resumed
+        self.created = created
     }
 
     init(from decoder: Decoder) throws {
@@ -331,6 +340,7 @@ struct SessionStartedFrame: Codable, Equatable {
         sampleRate = try container.decode(Int.self, forKey: .sampleRate)
         frontLLM = try container.decode(String.self, forKey: .frontLLM)
         resumed = try container.decode(Bool.self, forKey: .resumed)
+        created = try container.decodeIfPresent(Bool.self, forKey: .created)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -342,6 +352,7 @@ struct SessionStartedFrame: Codable, Equatable {
         try container.encode(sampleRate, forKey: .sampleRate)
         try container.encode(frontLLM, forKey: .frontLLM)
         try container.encode(resumed, forKey: .resumed)
+        try container.encodeIfPresent(created, forKey: .created)
     }
 }
 
@@ -408,6 +419,47 @@ struct TranscriptFrame: Codable, Equatable {
         try container.encode(turnID, forKey: .turnID)
         try container.encode(text, forKey: .text)
         try container.encode(isFinal, forKey: .isFinal)
+    }
+}
+
+struct AssistantTextFrame: Codable, Equatable {
+    static let type = "assistant_text"
+
+    var turnID: String
+    var text: String
+    var final: Bool
+    var ts: Double
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case turnID = "turnId"
+        case text
+        case final
+        case ts
+    }
+
+    init(turnID: String, text: String, final: Bool, ts: Double) {
+        self.turnID = turnID
+        self.text = text
+        self.final = final
+        self.ts = ts
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        turnID = try container.decode(String.self, forKey: .turnID)
+        text = try container.decode(String.self, forKey: .text)
+        final = try container.decode(Bool.self, forKey: .final)
+        ts = try container.decode(Double.self, forKey: .ts)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(Self.type, forKey: .type)
+        try container.encode(turnID, forKey: .turnID)
+        try container.encode(text, forKey: .text)
+        try container.encode(final, forKey: .final)
+        try container.encode(ts, forKey: .ts)
     }
 }
 

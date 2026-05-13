@@ -38,6 +38,7 @@
 		97A2AA4469FD0E430E424389 /* VoiceInteractionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8E56A67E5FD9E989196C41 /* VoiceInteractionMode.swift */; };
 		A2EEA52BEFC9F6287128221F /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B7AE66B1E251F5CFF96F21D0 /* libsqlite3.tbd */; };
 		B319005DB46CB24FF1F9E6BE /* ServerRegistryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35AC43133650C131A10D849 /* ServerRegistryStore.swift */; };
+		B62FDBF3EA6B528308277F5E /* VoiceControllerPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B12991674AC8F30164E49 /* VoiceControllerPersistenceTests.swift */; };
 		BE365532AE47D02F8AD12F21 /* ServerRegistryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */; };
 		C467CAE5C90C3187CA29D7D9 /* ServerInfoProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A05E5D4F16C7C0C2F8B762B /* ServerInfoProbeTests.swift */; };
 		C66DA6DEEC964B05D23908ED /* ServerInfoProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F5FB96F2D4D43BDAFAAD997 /* ServerInfoProbe.swift */; };
@@ -116,6 +117,7 @@
 		E101AC29B3A0A7D2CD852C6F /* VoiceSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSocket.swift; sourceTree = "<group>"; };
 		E2166518BEF80B2AB276FB39 /* AuthServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthServiceTests.swift; sourceTree = "<group>"; };
 		E6AE3A24E611F0CCD17A1F81 /* TurnId.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnId.swift; sourceTree = "<group>"; };
+		EA5B12991674AC8F30164E49 /* VoiceControllerPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceControllerPersistenceTests.swift; sourceTree = "<group>"; };
 		EC846F6BECE04324F6BB84BC /* SanityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanityTests.swift; sourceTree = "<group>"; };
 		F0B9E83F50FD8742CC1947CB /* PlaybackActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackActor.swift; sourceTree = "<group>"; };
 		F592670BCBB2AE3EFEF30D62 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -243,6 +245,7 @@
 				EC846F6BECE04324F6BB84BC /* SanityTests.swift */,
 				9A05E5D4F16C7C0C2F8B762B /* ServerInfoProbeTests.swift */,
 				7E8E813B24F2C55766D6461C /* ServerRegistryStoreTests.swift */,
+				EA5B12991674AC8F30164E49 /* VoiceControllerPersistenceTests.swift */,
 				B9E500EEED78C5F797D96F88 /* VoiceInteractionModeStoreTests.swift */,
 				A74271DE091B3A5C74E30561 /* VoiceSocketIntegrationTests.swift */,
 				0A1744EF33C678FDF596B712 /* VoiceSocketMessageProcessorTests.swift */,
@@ -410,6 +413,7 @@
 				2F639C80345B5668A48DF4C3 /* SanityTests.swift in Sources */,
 				C467CAE5C90C3187CA29D7D9 /* ServerInfoProbeTests.swift in Sources */,
 				BE365532AE47D02F8AD12F21 /* ServerRegistryStoreTests.swift in Sources */,
+				B62FDBF3EA6B528308277F5E /* VoiceControllerPersistenceTests.swift in Sources */,
 				61220796CD78E47FB6603FF9 /* VoiceInteractionModeStoreTests.swift in Sources */,
 				973BE564318122FA4FB40387 /* VoiceSocketIntegrationTests.swift in Sources */,
 				E0E2440FB1A03EB88CE06CC2 /* VoiceSocketMessageProcessorTests.swift in Sources */,

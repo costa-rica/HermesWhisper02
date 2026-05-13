@@ -104,9 +104,11 @@ struct VoiceView: View {
         }
         .padding()
         .onAppear {
+            voiceController.setConversationStore(appEnvironment.conversationStore)
             interactionMode = interactionModeStore.load(profileID: appEnvironment.activeProfile.id)
         }
         .onChange(of: appEnvironment.activeProfile.id) { _, profileID in
+            voiceController.setConversationStore(appEnvironment.conversationStore)
             interactionMode = interactionModeStore.load(profileID: profileID)
         }
         .sheet(isPresented: $showingServers) {

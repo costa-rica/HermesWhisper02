@@ -51,19 +51,19 @@ Depends on API V02 phases 1 and 3 (`assistant_text` frame defined and emitted).
 
 Tasks:
 
-- [ ] Extend `App/AppEnvironment.swift` to own the active `ConversationStore` and switch DB file on `switchActiveProfile(_:)`.
-- [ ] In `Voice/VoiceController.swift`:
-  - [ ] On `session_started`, call `store.upsertSession(id: session_id, hermesConversationID: conversation_id, title: nil)`.
-  - [ ] Maintain a per-turn pending buffer: `(turnID, pendingUserText, pendingAssistantText)`.
-  - [ ] On final transcript: fill `pendingUserText`.
-  - [ ] On `assistant_text { final: true }`: fill `pendingAssistantText`.
-  - [ ] On `turn_end { canceled: false }`: commit both messages via `appendMessage`; update preview and message_count.
-  - [ ] On `turn_end { canceled: true }`: discard pending assistant text. Persist user message only if it has already finalized (design decision in this phase — default is to discard the entire pair to keep history clean; document in code).
-- [ ] Tests: feed a mock turn end-to-end and assert both rows persist; feed a canceled turn and assert no assistant row.
+- [x] Extend `App/AppEnvironment.swift` to own the active `ConversationStore` and switch DB file on `switchActiveProfile(_:)`.
+- [x] In `Voice/VoiceController.swift`:
+  - [x] On `session_started`, call `store.upsertSession(id: session_id, hermesConversationID: conversation_id, title: nil)`.
+  - [x] Maintain a per-turn pending buffer: `(turnID, pendingUserText, pendingAssistantText)`.
+  - [x] On final transcript: fill `pendingUserText`.
+  - [x] On `assistant_text { final: true }`: fill `pendingAssistantText`.
+  - [x] On `turn_end { canceled: false }`: commit both messages via `appendMessage`; update preview and message_count.
+  - [x] On `turn_end { canceled: true }`: discard pending assistant text. Persist user message only if it has already finalized (design decision in this phase — default is to discard the entire pair to keep history clean; document in code).
+- [x] Tests: feed a mock turn end-to-end and assert both rows persist; feed a canceled turn and assert no assistant row.
 
 Checks before checking off:
 
-- [ ] `xcodebuild test` passes.
+- [x] `xcodebuild test` passes.
 
 Commit: `feat(mobile): turn-aware persistence (20260513_TODO_MOBILE_UI_HISTORY_V02 phase 2)`.
 

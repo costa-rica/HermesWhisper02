@@ -10,6 +10,7 @@ final class AppEnvironment {
     var activeProfile: ServerProfile
     var credentials: Credentials?
     var isAuthenticated: Bool
+    var conversationStore: ConversationStore?
 
     var activeServerName: String {
         activeProfile.displayName
@@ -29,6 +30,7 @@ final class AppEnvironment {
         self.voiceController = voiceController ?? VoiceController()
         self.credentials = initialCredentials
         self.isAuthenticated = initialCredentials != nil
+        self.conversationStore = try? ConversationStore(serverProfileID: activeProfile.id)
     }
 
     func login(email: String, password: String) async throws {
@@ -56,6 +58,7 @@ final class AppEnvironment {
     func switchActiveProfile(_ profile: ServerProfile) {
         voiceController?.disconnect()
         activeProfile = profile
+        conversationStore = try? ConversationStore(serverProfileID: profile.id)
         refreshCredentials()
     }
 

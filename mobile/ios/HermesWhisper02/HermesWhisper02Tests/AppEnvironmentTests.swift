@@ -20,6 +20,7 @@ final class AppEnvironmentTests: XCTestCase {
 
         XCTAssertEqual(voiceController.disconnectCount, 1)
         XCTAssertEqual(environment.activeProfile, second)
+        XCTAssertEqual(environment.conversationStore?.serverProfileID, second.id)
         XCTAssertNil(environment.credentials)
         XCTAssertFalse(environment.isAuthenticated)
     }
