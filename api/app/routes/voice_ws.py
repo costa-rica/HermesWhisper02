@@ -1,5 +1,6 @@
 import json
 import math
+from time import time
 from typing import Any
 
 from fastapi import APIRouter, WebSocket
@@ -153,6 +154,15 @@ async def _voice_loop(
                             "turn_id": turn.turn_id,
                             "text": turn.transcript,
                             "is_final": True,
+                        }
+                    )
+                    await adapter.websocket.send_json(
+                        {
+                            "type": "assistant_text",
+                            "turn_id": turn.turn_id,
+                            "text": turn.answer_text,
+                            "final": True,
+                            "ts": time(),
                         }
                     )
                     for chunk in turn.chunks:

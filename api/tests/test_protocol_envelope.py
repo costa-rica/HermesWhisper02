@@ -43,6 +43,7 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
         started = websocket.receive_json()
         _send_test_turn_audio(websocket)
         progress_frames, transcript = _receive_until_type(websocket, "transcript")
+        assistant_text = websocket.receive_json()
         ack_state = websocket.receive_json()
         prelude = websocket.receive_json()
         audio = websocket.receive_bytes()
@@ -64,6 +65,9 @@ def test_voice_ws_session_and_audio_echo(tmp_path, monkeypatch) -> None:
         "audio_ready",
     ]
     assert transcript["type"] == "transcript"
+    assert assistant_text["type"] == "assistant_text"
+    assert assistant_text["final"] is True
+    assert assistant_text["text"]
     assert ack_state == {"type": "assistant_state", "state": "ack"}
     assert prelude["type"] == "audio_chunk"
     assert prelude["source"] == "ack"

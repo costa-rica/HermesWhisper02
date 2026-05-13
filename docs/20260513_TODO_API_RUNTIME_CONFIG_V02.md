@@ -69,17 +69,17 @@ Commit: `feat(api): propagate Hermes session id on every request (20260513_TODO_
 
 Tasks:
 
-- [ ] In api/app/services/front_llm.py (or its caller in voice_ws.py), accumulate the streamed Hermes deltas into a final answer string.
-- [ ] After Hermes finishes (and before `turn_end`), send `assistant_text { turn_id, text, final: true, ts }` over the WebSocket.
-- [ ] Keep the assembled assistant text available to `voice_ws.py` for persistence only after `turn_end` succeeds.
-- [ ] If the turn is canceled, do not send `assistant_text final=true` and do not persist the assistant row.
-- [ ] Add `tests/test_assistant_text_frame.py`:
-  - [ ] Complete turn → one `assistant_text final=true` frame with non-empty text.
-  - [ ] Canceled turn → no `assistant_text final=true` frame; no assistant row persisted.
+- [x] In api/app/services/front_llm.py (or its caller in voice_ws.py), accumulate the streamed Hermes deltas into a final answer string.
+- [x] After Hermes finishes (and before `turn_end`), send `assistant_text { turn_id, text, final: true, ts }` over the WebSocket.
+- [x] Keep the assembled assistant text available to `voice_ws.py` for persistence only after `turn_end` succeeds.
+- [x] If the turn is canceled, do not send `assistant_text final=true` and do not persist the assistant row.
+- [x] Add `tests/test_assistant_text_frame.py`:
+  - [x] Complete turn → one `assistant_text final=true` frame with non-empty text.
+  - [x] Canceled turn → no `assistant_text final=true` frame; no assistant row persisted.
 
 Checks before checking off:
 
-- [ ] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
+- [x] `uv run pytest && uv run ruff check && uv run ruff format --check` pass.
 
 Commit: `feat(api): emit assistant_text on turn completion (20260513_TODO_API_RUNTIME_CONFIG_V02 phase 3)`.
 
